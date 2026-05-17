@@ -1,0 +1,22 @@
+[
+  {
+    "id": "guard",
+    "name": "格挡",
+    "description": "下次受到普通伤害时，原始伤害 -10。"
+  },
+  {
+    "id": "sure_evasion",
+    "name": "必定闪避",
+    "description": "受到的普通伤害无效，持续到本回合结束。"
+  },
+  {
+    "id": "immune",
+    "name": "免疫",
+    "description": "受到的普通伤害无效，持续到本回合结束。"
+  },
+  {
+    "id": "eagle_eye",
+    "name": "鹰眼",
+    "description": "本局永久持续。射击必中，后跳判定除 1 外均成功。"
+  }
+]

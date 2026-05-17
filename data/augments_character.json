@@ -1,0 +1,38 @@
+{
+  "swordsman": [
+    {
+      "id": "sword_combo",
+      "name": "剑势连斩",
+      "description": "斩击伤害 +10。",
+      "effect": "skill_damage_bonus",
+      "target_skill": "swordsman_slash",
+      "amount": 10
+    },
+    {
+      "id": "iron_wall_counter",
+      "name": "铁壁反击",
+      "description": "格挡获得护盾 +10。",
+      "effect": "skill_shield_bonus",
+      "target_skill": "swordsman_block",
+      "amount": 10
+    }
+  ],
+  "archer": [
+    {
+      "id": "quick_draw",
+      "name": "快拔弦",
+      "description": "射击伤害 +15。",
+      "effect": "skill_damage_bonus",
+      "target_skill": "archer_shot",
+      "amount": 15
+    },
+    {
+      "id": "agile_footwork",
+      "name": "机动步法",
+      "description": "后跳消耗 -10 MP。",
+      "effect": "skill_cost_delta",
+      "target_skill": "archer_backstep",
+      "amount": -10
+    }
+  ]
+}
