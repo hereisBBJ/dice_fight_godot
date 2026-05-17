@@ -8,55 +8,55 @@
   "max_mp": 50,
   "max_shield": 20,
   "passive": {
-    "id": "sword_spirit",
-    "name": "剑意激荡",
-    "description": "进攻回合造成至少 20 点生命值伤害时，获得 10 护盾。"
+	"id": "sword_spirit",
+	"name": "剑意激荡",
+	"description": "进攻回合造成至少 20 点生命值伤害时，获得 10 护盾。"
   },
   "skills": [
-    {
-      "id": "swordsman_slash",
-      "name": "斩击",
-      "type": "attack",
-      "cost": 0,
-      "dice_requirements": ["1-3", "1-3"],
-      "description": "造成 20 伤害。",
-      "effects": [
-        {"type": "damage", "amount": 20, "skill_tag": "slash"}
-      ]
-    },
-    {
-      "id": "swordsman_block",
-      "name": "格挡",
-      "type": "defense",
-      "cost": 0,
-      "dice_requirements": ["1-3", "1-3"],
-      "description": "获得 10 护盾，并获得 1 回合格挡：下次受到伤害时减伤 10。",
-      "effects": [
-        {"type": "shield", "amount": 10, "skill_tag": "block"},
-        {"type": "add_status", "status_id": "guard", "duration": 1, "value": 10}
-      ]
-    },
-    {
-      "id": "swordsman_shield_bash",
-      "name": "盾击",
-      "type": "attack",
-      "cost": 20,
-      "dice_requirements": [6, "1-3"],
-      "description": "造成 20 + 当前护盾值的伤害。",
-      "effects": [
-        {"type": "damage_by_shield", "base": 20}
-      ]
-    },
-    {
-      "id": "swordsman_finish",
-      "name": "终结",
-      "type": "attack",
-      "cost": 30,
-      "dice_requirements": [6, 6],
-      "description": "造成 30 + 上回合承受生命伤害的伤害。",
-      "effects": [
-        {"type": "damage_by_last_taken", "base": 30}
-      ]
-    }
+	{
+	  "id": "swordsman_slash",
+	  "name": "斩击",
+	  "type": "attack",
+	  "cost": 0,
+	  "dice_requirements": ["1-3", "1-3"],
+	  "description": "造成 20 伤害。",
+	  "effects": [
+		{"type": "damage", "amount": 20, "skill_tag": "slash"}
+	  ]
+	},
+	{
+	  "id": "swordsman_block",
+	  "name": "格挡",
+	  "type": "defense",
+	  "cost": 0,
+	  "dice_requirements": ["1-3", "1-3"],
+	  "description": "获得 10 护盾，并获得 1 回合格挡：下次受到伤害时减伤 10。",
+	  "effects": [
+		{"type": "shield", "amount": 10, "skill_tag": "block"},
+		{"type": "add_status", "status_id": "guard", "duration": 1, "value": 10}
+	  ]
+	},
+	{
+	  "id": "swordsman_shield_bash",
+	  "name": "盾击",
+	  "type": "attack",
+	  "cost": 20,
+	  "dice_requirements": [6, "1-3"],
+	  "description": "造成 20 + 当前护盾值的伤害。",
+	  "effects": [
+		{"type": "damage_by_shield", "base": 20}
+	  ]
+	},
+	{
+	  "id": "swordsman_finish",
+	  "name": "终结",
+	  "type": "attack",
+	  "cost": 30,
+	  "dice_requirements": [6, 6],
+	  "description": "造成 30 + 上回合承受生命伤害的伤害。",
+	  "effects": [
+		{"type": "damage_by_last_taken", "base": 30}
+	  ]
+	}
   ]
 }

@@ -572,7 +572,7 @@ func _apply_damage(attacker: int, target: int, amount: int, break_life_damage: i
 	return result
 
 
-func _deal_life_damage(attacker: int, target: int, amount: int, skill_id: String) -> int:
+func _deal_life_damage(attacker: int, target: int, amount: int, _skill_id: String) -> int:
 	var before = int(players[target].hp)
 	players[target].hp -= amount
 	var actual = before - int(players[target].hp)
@@ -698,6 +698,36 @@ func restart_match() -> void:
 		players[player_id].character_augment_picked = true
 	_start_battle()
 	_log("再来一局：保留双方角色和强化。")
+
+
+func to_snapshot() -> Dictionary:
+	return {
+		"phase": phase,
+		"players": players.duplicate(true),
+		"round_num": round_num,
+		"attacker_id": attacker_id,
+		"winner_id": winner_id,
+		"logs": logs.duplicate(true),
+		"pending_actions": pending_actions.duplicate(true),
+		"augment_candidates": augment_candidates.duplicate(true),
+		"pending_interactive_request": pending_interactive_request.duplicate(true)
+	}
+
+
+func apply_snapshot(snapshot: Dictionary) -> void:
+	phase = String(snapshot.get("phase", PHASE_CHARACTER_SELECT))
+	players = snapshot.get("players", [_empty_player(0), _empty_player(1)]).duplicate(true)
+	round_num = int(snapshot.get("round_num", 0))
+	attacker_id = int(snapshot.get("attacker_id", 0))
+	winner_id = int(snapshot.get("winner_id", -1))
+	logs = snapshot.get("logs", []).duplicate(true)
+	pending_actions = snapshot.get("pending_actions", [{}, {}]).duplicate(true)
+	augment_candidates = snapshot.get("augment_candidates", [{}, {}]).duplicate(true)
+	pending_interactive_request = snapshot.get("pending_interactive_request", {}).duplicate(true)
+
+
+func append_log(message: String) -> void:
+	_log(message)
 
 
 func _find_augment_for_player(player_id: int, augment_id: String) -> Dictionary:

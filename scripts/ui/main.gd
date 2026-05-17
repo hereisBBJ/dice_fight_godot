@@ -1,13 +1,23 @@
 extends Control
 
 const BattleStateScript = preload("res://scripts/rules/battle_state.gd")
+const NetworkControllerScript = preload("res://scripts/network/network_controller.gd")
 
 var battle
+var network_controller
+var app_screen = "menu"
+var default_join_ip = "127.0.0.1"
 
 
 func _ready() -> void:
 	battle = BattleStateScript.new()
 	battle.setup()
+	network_controller = NetworkControllerScript.new()
+	network_controller.name = "NetworkController"
+	add_child(network_controller)
+	network_controller.bind_battle_state(battle)
+	network_controller.state_changed.connect(_render)
+	network_controller.status_changed.connect(_render)
 	_render()
 
 
@@ -23,6 +33,10 @@ func _render() -> void:
 	scroll.add_child(root)
 
 	_add_title(root, "Dice Fight Demo")
+	if app_screen == "menu":
+		_render_network_menu(root)
+		return
+	_render_network_status(root)
 	match battle.phase:
 		BattleStateScript.PHASE_CHARACTER_SELECT:
 			_render_character_select(root)
@@ -36,11 +50,90 @@ func _render() -> void:
 
 func _clear() -> void:
 	for child in get_children():
+		if child == network_controller:
+			continue
 		child.queue_free()
 
 
+func _render_network_menu(root: VBoxContainer) -> void:
+	var panel = _panel()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.add_child(panel)
+	_add_label(panel, "选择运行模式", 24)
+	_add_label(panel, "Milestone 2：LAN 主机权威同步。单机热座仍保留，方便本机规则测试。", 16)
+
+	var local_button = Button.new()
+	local_button.text = "单机热座"
+	local_button.custom_minimum_size = Vector2(0, 54)
+	local_button.pressed.connect(func():
+		battle.reset_to_character_select()
+		network_controller.start_local(battle)
+		app_screen = "game"
+		_render()
+	)
+	panel.add_child(local_button)
+
+	var host_button = Button.new()
+	host_button.text = "创建 LAN 房间（端口 %d）" % NetworkControllerScript.DEFAULT_PORT
+	host_button.custom_minimum_size = Vector2(0, 54)
+	host_button.pressed.connect(func():
+		battle.reset_to_character_select()
+		if network_controller.host(battle):
+			app_screen = "game"
+		_render()
+	)
+	panel.add_child(host_button)
+
+	var join_row = HBoxContainer.new()
+	join_row.add_theme_constant_override("separation", 8)
+	panel.add_child(join_row)
+
+	var ip_input = LineEdit.new()
+	ip_input.text = default_join_ip
+	ip_input.placeholder_text = "主机 IP，例如 192.168.1.10"
+	ip_input.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	join_row.add_child(ip_input)
+
+	var join_button = Button.new()
+	join_button.text = "加入 LAN 房间"
+	join_button.pressed.connect(func():
+		default_join_ip = ip_input.text.strip_edges()
+		if default_join_ip.is_empty():
+			default_join_ip = "127.0.0.1"
+		battle.reset_to_character_select()
+		if network_controller.join(battle, default_join_ip):
+			app_screen = "game"
+		_render()
+	)
+	join_row.add_child(join_button)
+
+	_add_label(panel, "状态：%s" % network_controller.status_message, 15)
+	_render_log(root)
+
+
+func _render_network_status(root: VBoxContainer) -> void:
+	var panel = _panel()
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.add_child(panel)
+	var player_text = "本机控制 P1/P2"
+	if network_controller.mode != NetworkControllerScript.MODE_LOCAL:
+		player_text = "等待分配玩家编号"
+		if network_controller.local_player_id >= 0:
+			player_text = "本机控制 P%d" % [network_controller.local_player_id + 1]
+	_add_label(panel, "%s | %s" % [network_controller.status_message, player_text], 15)
+	var back = Button.new()
+	back.text = "返回模式选择 / 断开连接"
+	back.pressed.connect(func():
+		network_controller.stop_network()
+		battle.reset_to_character_select()
+		app_screen = "menu"
+		_render()
+	)
+	panel.add_child(back)
+
+
 func _render_character_select(root: VBoxContainer) -> void:
-	_add_label(root, "单机双人热座：先为 P1 和 P2 选择角色。", 18)
+	_add_label(root, "为 P1 和 P2 选择角色。联网模式下只能选择自己的角色。", 18)
 	var row = HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_theme_constant_override("separation", 12)
@@ -65,10 +158,12 @@ func _render_character_select(root: VBoxContainer) -> void:
 				character.passive.description
 			]
 			button.custom_minimum_size = Vector2(0, 96)
-			button.disabled = battle.players[selected_player_id].character_id == selected_character_id
+			button.disabled = not _can_control_player(selected_player_id) or battle.players[selected_player_id].character_id == selected_character_id
 			button.pressed.connect(func():
-				battle.select_character(selected_player_id, selected_character_id)
-				_render()
+				_submit_player_command(selected_player_id, {
+					"type": "select_character",
+					"character_id": selected_character_id
+				})
 			)
 			panel.add_child(button)
 	_render_log(root)
@@ -99,9 +194,12 @@ func _render_augment_select(root: VBoxContainer) -> void:
 			var button = Button.new()
 			button.text = "%s\n%s" % [augment.name, augment.description]
 			button.custom_minimum_size = Vector2(0, 78)
+			button.disabled = not _can_control_player(selected_player_id)
 			button.pressed.connect(func():
-				battle.pick_augment(selected_player_id, selected_augment_id)
-				_render()
+				_submit_player_command(selected_player_id, {
+					"type": "pick_augment",
+					"augment_id": selected_augment_id
+				})
 			)
 			panel.add_child(button)
 	_render_log(root)
@@ -152,19 +250,18 @@ func _render_interactive(root: VBoxContainer) -> void:
 
 	var accept = Button.new()
 	accept.text = "接受结果"
+	accept.disabled = not _can_control_player(responder_id)
 	accept.pressed.connect(func():
-		battle.interactive_accept()
-		_render()
+		_submit_player_command(responder_id, {"type": "interactive_accept"})
 	)
 	row.add_child(accept)
 
 	var reroll = Button.new()
 	var reroll_cost = battle.get_reroll_cost(responder_id)
 	reroll.text = "重掷判定骰（%d MP）" % reroll_cost
-	reroll.disabled = battle.players[responder_id].mp < reroll_cost
+	reroll.disabled = not _can_control_player(responder_id) or battle.players[responder_id].mp < reroll_cost
 	reroll.pressed.connect(func():
-		battle.interactive_reroll()
-		_render()
+		_submit_player_command(responder_id, {"type": "interactive_reroll"})
 	)
 	row.add_child(reroll)
 
@@ -178,10 +275,12 @@ func _render_interactive(root: VBoxContainer) -> void:
 	var modify = Button.new()
 	var modify_cost = battle.get_modify_cost(responder_id)
 	modify.text = "修改判定骰（%d MP）" % modify_cost
-	modify.disabled = battle.players[responder_id].mp < modify_cost or bool(battle.players[responder_id].has_modified_this_turn)
+	modify.disabled = not _can_control_player(responder_id) or battle.players[responder_id].mp < modify_cost or bool(battle.players[responder_id].has_modified_this_turn)
 	modify.pressed.connect(func():
-		battle.interactive_modify(int(value_spin.value))
-		_render()
+		_submit_player_command(responder_id, {
+			"type": "interactive_modify",
+			"value": int(value_spin.value)
+		})
 	)
 	row.add_child(modify)
 
@@ -203,17 +302,17 @@ func _render_game_over(root: VBoxContainer) -> void:
 	root.add_child(buttons)
 	var rematch = Button.new()
 	rematch.text = "再来一局（保留角色与强化）"
+	rematch.disabled = not network_controller.can_control_any()
 	rematch.pressed.connect(func():
-		battle.restart_match()
-		_render()
+		_submit_global_command({"type": "restart_request"})
 	)
 	buttons.add_child(rematch)
 
 	var reset = Button.new()
 	reset.text = "重新选角"
+	reset.disabled = network_controller.mode == NetworkControllerScript.MODE_CLIENT
 	reset.pressed.connect(func():
-		battle.reset_to_character_select()
-		_render()
+		_submit_global_command({"type": "reset_to_character_select"})
 	)
 	buttons.add_child(reset)
 	_render_log(root)
@@ -241,6 +340,9 @@ func _action_panel(player_id: int) -> VBoxContainer:
 	var panel = _panel()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_add_label(panel, "P%d 行动 | %s" % [player_id + 1, battle.role_text(player_id)], 20)
+	if not _can_control_player(player_id):
+		_add_label(panel, "联网模式下等待对方操作。", 16)
+		return panel
 	if not player.submitted_action.is_empty():
 		_add_label(panel, "本回合行动已锁定。", 16)
 		return panel
@@ -253,8 +355,7 @@ func _action_panel(player_id: int) -> VBoxContainer:
 	reroll.text = "重掷（%d MP）" % battle.get_reroll_cost(player_id)
 	reroll.disabled = player.mp < battle.get_reroll_cost(player_id)
 	reroll.pressed.connect(func():
-		battle.reroll_dice(player_id)
-		_render()
+		_submit_player_command(player_id, {"type": "reroll_dice"})
 	)
 	tools.add_child(reroll)
 
@@ -276,16 +377,18 @@ func _action_panel(player_id: int) -> VBoxContainer:
 	modify.text = "修改（%d MP）" % battle.get_modify_cost(player_id)
 	modify.disabled = player.mp < battle.get_modify_cost(player_id) or bool(player.has_modified_this_turn)
 	modify.pressed.connect(func():
-		battle.modify_die(player_id, int(die_index.value) - 1, int(die_value.value))
-		_render()
+		_submit_player_command(player_id, {
+			"type": "modify_die",
+			"die_index": int(die_index.value) - 1,
+			"value": int(die_value.value)
+		})
 	)
 	tools.add_child(modify)
 
 	var skip = Button.new()
 	skip.text = "跳过回合"
 	skip.pressed.connect(func():
-		battle.submit_skip(player_id)
-		_render()
+		_submit_player_command(player_id, {"type": "skip_turn"})
 	)
 	tools.add_child(skip)
 
@@ -324,8 +427,11 @@ func _add_skill_button(parent: HBoxContainer, player_id: int, skill: Dictionary,
 	var selected_skill_id = String(skill.id)
 	var selected_modes = modes.duplicate()
 	button.pressed.connect(func():
-		battle.submit_skill(player_id, selected_skill_id, selected_modes)
-		_render()
+		_submit_player_command(player_id, {
+			"type": "use_skill",
+			"skill_id": selected_skill_id,
+			"modes": selected_modes
+		})
 	)
 	parent.add_child(button)
 
@@ -334,15 +440,15 @@ func _render_log(root: VBoxContainer) -> void:
 	var panel = _panel()
 	root.add_child(panel)
 	_add_label(panel, "战斗日志", 20)
-	var log = TextEdit.new()
-	log.editable = false
-	log.custom_minimum_size = Vector2(0, 220)
+	var log_view = TextEdit.new()
+	log_view.editable = false
+	log_view.custom_minimum_size = Vector2(0, 220)
 	var start = max(0, battle.logs.size() - 40)
 	var visible_logs = []
 	for index in range(start, battle.logs.size()):
 		visible_logs.append(str(battle.logs[index]))
-	log.text = "\n".join(visible_logs)
-	panel.add_child(log)
+	log_view.text = "\n".join(visible_logs)
+	panel.add_child(log_view)
 
 
 func _panel() -> VBoxContainer:
@@ -391,3 +497,17 @@ func _action_text(action: Dictionary) -> String:
 		var modes: Array = action.get("modes", [])
 		return "%s%s" % [String(action.skill_id), "" if modes.is_empty() else " + " + ", ".join(modes)]
 	return String(action.type)
+
+
+func _can_control_player(player_id: int) -> bool:
+	return network_controller.can_control_player(player_id)
+
+
+func _submit_player_command(player_id: int, command: Dictionary) -> void:
+	network_controller.submit_command(player_id, command)
+	_render()
+
+
+func _submit_global_command(command: Dictionary) -> void:
+	network_controller.submit_global_command(command)
+	_render()
