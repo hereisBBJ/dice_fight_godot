@@ -228,6 +228,8 @@ func _begin_round(carry_last_turn: bool) -> void:
 		player.dice = DiceRulesScript.roll_dice(rng, 4)
 		players[player_id] = player
 	_log("第 %d 回合开始。P%d 进攻，P%d 防守。" % [round_num, attacker_id + 1, _defender_id() + 1])
+	_resolve_round_start_statuses()
+	_check_game_over()
 
 
 func _defender_id() -> int:
@@ -403,7 +405,32 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 			var amount = _modified_shield_gain(actor_id, skill, int(effect.amount))
 			_gain_shield(actor_id, amount)
 		"add_status":
-			_add_status(actor_id, String(effect.status_id), int(effect.get("duration", 1)), int(effect.get("value", 0)))
+			var status_target = target_id if String(effect.get("target", "self")) == "enemy" else actor_id
+			_add_status(status_target, String(effect.status_id), int(effect.get("duration", 1)), int(effect.get("value", 0)), actor_id)
+		"lifesteal_damage":
+			var amount = _modified_damage(actor_id, skill, int(effect.amount))
+			var result = _apply_damage(actor_id, target_id, amount, 10, String(skill.id))
+			var healed = int(result.get("hp_damage", 0))
+			if healed > 0 and players[actor_id].hp > 0:
+				_heal(actor_id, healed)
+			else:
+				_log("P%d 没有造成生命伤害，生命吸取不回复。" % [actor_id + 1])
+		"add_burn":
+			_add_burn(actor_id, target_id, int(effect.get("layers", 1)))
+		"flame_tide":
+			if bool(players[actor_id].per_game_flags.get("flame_tide", false)):
+				_log("P%d 已经处于炎潮状态，本次没有重复获得。" % [actor_id + 1])
+			else:
+				players[actor_id].per_game_flags.flame_tide = true
+				_log("P%d 觉醒炎潮，之后施加灼烧层数 +1。" % [actor_id + 1])
+		"variable_burn":
+			var spend = int(floor(float(players[actor_id].mp) / 10.0)) * 10
+			if spend <= 0:
+				_log("P%d 没有足够 MP 投入风炎，施法失败。" % [actor_id + 1])
+			else:
+				players[actor_id].mp -= spend
+				_add_burn(actor_id, target_id, int(floor(float(spend) / 10.0)))
+				_log("P%d 投入 %d MP 释放风炎。" % [actor_id + 1, spend])
 		"damage_by_shield":
 			var amount = _modified_damage(actor_id, skill, int(effect.base) + int(players[actor_id].shield))
 			_apply_damage(actor_id, target_id, amount, 10, String(skill.id))
@@ -568,6 +595,9 @@ func _apply_damage(attacker: int, target: int, amount: int, break_life_damage: i
 			var life_damage = break_life_damage + _augment_sum(players[attacker], "break_life_damage_bonus")
 			_log("P%d 的护盾被击破，造成固定破盾生命伤害 %d。" % [target + 1, life_damage])
 			result.hp_damage = _deal_life_damage(attacker, target, life_damage, skill_id)
+			if _has_status(target, "fire_shield"):
+				_log("P%d 的火盾被破盾触发，对 P%d 反施加灼烧。" % [target + 1, attacker + 1])
+				_add_burn(target, attacker, 1)
 	_check_game_over()
 	return result
 
@@ -579,9 +609,44 @@ func _deal_life_damage(attacker: int, target: int, amount: int, _skill_id: Strin
 	players[target].damage_taken_this_turn += actual
 	players[attacker].dealt_damage_this_turn += actual
 	_log("P%d 对 P%d 造成 %d 生命伤害（%d -> %d）。" % [attacker + 1, target + 1, amount, before, players[target].hp])
+	_try_death_prevention(target)
 	_try_first_aid(target)
 	_try_sword_spirit(attacker, actual)
 	return actual
+
+
+func _deal_direct_life_loss(source_id: int, target_id: int, amount: int, reason: String) -> int:
+	if amount <= 0:
+		return 0
+	var before = int(players[target_id].hp)
+	players[target_id].hp -= amount
+	var actual = before - int(players[target_id].hp)
+	players[target_id].damage_taken_this_turn += actual
+	if _valid_player(source_id):
+		players[source_id].dealt_damage_this_turn += actual
+	_log("P%d 因%s受到 %d 点直接生命损失（%d -> %d）。" % [target_id + 1, reason, amount, before, players[target_id].hp])
+	_try_death_prevention(target_id)
+	_try_first_aid(target_id)
+	_check_game_over()
+	return actual
+
+
+func _heal(player_id: int, amount: int) -> void:
+	if amount <= 0:
+		return
+	var before = int(players[player_id].hp)
+	players[player_id].hp = min(players[player_id].max_hp, players[player_id].hp + amount)
+	_log("P%d 回复 %d HP（%d -> %d）。" % [player_id + 1, players[player_id].hp - before, before, players[player_id].hp])
+
+
+func _try_death_prevention(player_id: int) -> void:
+	if players[player_id].hp > 0:
+		return
+	if players[player_id].character_id == "pyromancer" and not bool(players[player_id].per_game_flags.get("rebirth_used", false)):
+		players[player_id].per_game_flags.rebirth_used = true
+		players[player_id].hp = 10
+		players[player_id].mp = min(players[player_id].max_mp, players[player_id].mp + 20)
+		_log("P%d 触发浴火重生，HP 重置为 10，并回复 20 MP。" % [player_id + 1])
 
 
 func _try_first_aid(player_id: int) -> void:
@@ -608,14 +673,80 @@ func _gain_shield(player_id: int, amount: int) -> void:
 	_log("P%d 获得 %d 护盾（%d -> %d）。" % [player_id + 1, players[player_id].shield - before, before, players[player_id].shield])
 
 
-func _add_status(player_id: int, status_id: String, duration: int, value: int) -> void:
+func _add_status(player_id: int, status_id: String, duration: int, value: int, source_id: int = -1) -> void:
 	_remove_status(player_id, status_id)
 	players[player_id].statuses.append({
 		"id": status_id,
 		"duration": duration,
-		"value": value
+		"value": value,
+		"source_id": source_id
 	})
 	_log("P%d 获得状态：%s。" % [player_id + 1, get_status_name(status_id)])
+
+
+func _add_burn(source_id: int, target_id: int, base_layers: int) -> void:
+	var layers = base_layers + _burn_layer_bonus(source_id)
+	if layers <= 0:
+		return
+	for index in range(players[target_id].statuses.size()):
+		var status: Dictionary = players[target_id].statuses[index]
+		if String(status.id) == "burn" and int(status.get("source_id", -1)) == source_id:
+			players[target_id].statuses[index].layers = int(status.get("layers", 0)) + layers
+			_log("P%d 获得 %d 层灼烧（共 %d 层）。" % [target_id + 1, layers, int(players[target_id].statuses[index].layers)])
+			return
+	players[target_id].statuses.append({
+		"id": "burn",
+		"duration": 1,
+		"value": 10,
+		"layers": layers,
+		"source_id": source_id
+	})
+	_log("P%d 获得 %d 层灼烧。" % [target_id + 1, layers])
+
+
+func _burn_layer_bonus(source_id: int) -> int:
+	if not _valid_player(source_id):
+		return 0
+	var bonus = _augment_sum(players[source_id], "burn_layer_bonus")
+	if bool(players[source_id].per_game_flags.get("flame_tide", false)):
+		bonus += 1
+	return bonus
+
+
+func _resolve_round_start_statuses() -> void:
+	for player_id in range(2):
+		if phase == PHASE_GAME_OVER:
+			return
+		var kept_statuses = []
+		for status in players[player_id].statuses:
+			var status_id = String(status.id)
+			if status_id == "poison":
+				_deal_direct_life_loss(int(status.get("source_id", -1)), player_id, int(status.get("value", 5)), "中毒")
+				status.duration = int(status.get("duration", 1)) - 1
+				if int(status.duration) > 0 and phase != PHASE_GAME_OVER:
+					kept_statuses.append(status)
+			elif status_id == "burn":
+				_resolve_burn_status(player_id, status)
+			else:
+				kept_statuses.append(status)
+			if phase == PHASE_GAME_OVER:
+				break
+		players[player_id].statuses = kept_statuses
+
+
+func _resolve_burn_status(target_id: int, status: Dictionary) -> void:
+	var source_id = int(status.get("source_id", -1))
+	var layers = int(status.get("layers", 1))
+	_log("P%d 的 %d 层灼烧开始结算。" % [target_id + 1, layers])
+	for _layer in range(layers):
+		var die = rng.randi_range(1, 6)
+		if die % 2 == 1:
+			_log("灼烧判定掷出 %d：P%d 受到 10 点真实伤害。" % [die, target_id + 1])
+			_deal_direct_life_loss(source_id, target_id, 10, "灼烧")
+		else:
+			_log("灼烧判定掷出 %d：无事发生。" % die)
+		if phase == PHASE_GAME_OVER:
+			return
 
 
 func _consume_guard(player_id: int) -> int:
@@ -661,7 +792,7 @@ func _finish_round() -> void:
 func _clear_end_round_statuses(player_id: int) -> void:
 	for index in range(players[player_id].statuses.size() - 1, -1, -1):
 		var status_id = String(players[player_id].statuses[index].id)
-		if status_id in ["guard", "immune", "sure_evasion"]:
+		if status_id in ["guard", "immune", "sure_evasion", "fire_shield"]:
 			players[player_id].statuses.remove_at(index)
 
 
@@ -778,6 +909,10 @@ func get_skill_block_reason(player_id: int, skill: Dictionary, modes: Array = []
 		return "上回合已经造成过伤害"
 	if String(skill.id) == "archer_eagle_eye" and bool(players[player_id].per_game_flags.get("eagle_eye_used", false)):
 		return "本局已经使用过鹰眼"
+	if String(skill.id) == "pyromancer_flame_tide" and bool(players[player_id].per_game_flags.get("flame_tide", false)):
+		return "已经处于炎潮状态"
+	if String(skill.id) == "pyromancer_flame_wind" and int(floor(float(players[player_id].mp) / 10.0)) * 10 <= 0:
+		return "没有可投入的 MP"
 	var cost = get_skill_cost(player_id, skill, modes)
 	if players[player_id].mp < cost:
 		return "MP 不足（需要 %d）" % cost
@@ -858,9 +993,17 @@ func get_status_name(status_id: String) -> String:
 func status_text(player_id: int) -> String:
 	var names = []
 	for status in players[player_id].statuses:
-		names.append(get_status_name(String(status.id)))
+		var status_id = String(status.id)
+		if status_id == "burn":
+			names.append("%s x%d" % [get_status_name(status_id), int(status.get("layers", 1))])
+		elif status_id == "poison":
+			names.append("%s(%d)" % [get_status_name(status_id), int(status.get("duration", 1))])
+		else:
+			names.append(get_status_name(status_id))
 	if bool(players[player_id].per_game_flags.get("eagle_eye", false)):
 		names.append("鹰眼")
+	if bool(players[player_id].per_game_flags.get("flame_tide", false)):
+		names.append("炎潮")
 	return "无" if names.is_empty() else "、".join(names)
 
 

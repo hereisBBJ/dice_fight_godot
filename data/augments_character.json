@@ -34,5 +34,40 @@
       "target_skill": "archer_backstep",
       "amount": -10
     }
+  ],
+  "witch_doctor": [
+    {
+      "id": "poison_bottle_concentrate",
+      "name": "毒瓶浓缩",
+      "description": "剧毒药瓶伤害 +10。",
+      "effect": "skill_damage_bonus",
+      "target_skill": "witch_poison_bottle",
+      "amount": 10
+    },
+    {
+      "id": "greedy_drain",
+      "name": "贪婪汲取",
+      "description": "生命吸取伤害 +10。",
+      "effect": "skill_damage_bonus",
+      "target_skill": "witch_life_drain",
+      "amount": 10
+    }
+  ],
+  "pyromancer": [
+    {
+      "id": "ember_amplification",
+      "name": "余烬增幅",
+      "description": "施加灼烧时额外 +1 层。",
+      "effect": "burn_layer_bonus",
+      "amount": 1
+    },
+    {
+      "id": "blazing_guard_ring",
+      "name": "炽焰护环",
+      "description": "火盾获得护盾 +15。",
+      "effect": "skill_shield_bonus",
+      "target_skill": "pyromancer_fire_shield",
+      "amount": 15
+    }
   ]
 }

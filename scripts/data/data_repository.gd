@@ -1,7 +1,7 @@
 extends RefCounted
 class_name DataRepository
 
-const CHARACTER_IDS = ["swordsman", "archer"]
+const CHARACTER_IDS = ["swordsman", "archer", "witch_doctor", "pyromancer"]
 
 static func load_json(path: String) -> Variant:
 	var raw = FileAccess.get_file_as_string(path)

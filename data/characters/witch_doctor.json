@@ -1,0 +1,40 @@
+{
+  "id": "witch_doctor",
+  "name": "巫医",
+  "theme_color": "#8c63d8",
+  "initial_hp": 90,
+  "max_hp": 90,
+  "initial_mp": 70,
+  "max_mp": 70,
+  "max_shield": 60,
+  "passive": {
+    "id": "none",
+    "name": "无",
+    "description": "无被动。"
+  },
+  "skills": [
+    {
+      "id": "witch_poison_bottle",
+      "name": "剧毒药瓶",
+      "type": "attack",
+      "cost": 0,
+      "dice_requirements": ["5-6", "3-6"],
+      "description": "造成 15 伤害，并施加中毒：每回合 -5 HP，持续 3 回合。",
+      "effects": [
+        {"type": "damage", "amount": 15, "skill_tag": "poison_bottle"},
+        {"type": "add_status", "target": "enemy", "status_id": "poison", "duration": 3, "value": 5}
+      ]
+    },
+    {
+      "id": "witch_life_drain",
+      "name": "生命吸取",
+      "type": "attack",
+      "cost": 15,
+      "dice_requirements": ["odd", "odd"],
+      "description": "造成 20 伤害，并回复等同于实际生命伤害的 HP。若没有造成生命伤害，则不回复。",
+      "effects": [
+        {"type": "lifesteal_damage", "amount": 20}
+      ]
+    }
+  ]
+}

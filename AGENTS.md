@@ -7,7 +7,7 @@
 - Prioritize correct game logic, clear battle logs, and testable rule separation over polished visuals.
 
 ## Current Demo Scope
-- Supported characters for the first playable slice: Swordsman and Archer.
+- Supported characters for the current playable slice: Swordsman, Archer, Witch Doctor, and Pyromancer.
 - Implemented flow should remain: character select, augment select, battle, interactive judgment, game over, rematch.
 - Keep rules data-driven where practical:
   - Character data lives in `data/characters/`.

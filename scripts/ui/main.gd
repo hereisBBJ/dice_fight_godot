@@ -146,7 +146,9 @@ func _render_character_select(root: VBoxContainer) -> void:
 		_add_label(panel, "P%d 角色" % [selected_player_id + 1], 22)
 		if battle.players[selected_player_id].character_id != "":
 			_add_label(panel, "已选择：%s" % battle.players[selected_player_id].character.name, 16)
-		for character_id in ["swordsman", "archer"]:
+		var character_ids = battle.characters.keys()
+		character_ids.sort()
+		for character_id in character_ids:
 			var selected_character_id = character_id
 			var character: Dictionary = battle.characters[character_id]
 			var button = Button.new()
