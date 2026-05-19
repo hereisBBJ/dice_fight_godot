@@ -1,0 +1,75 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/screens/battle_screen.gd" id="1_battle"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/player_state_panel.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/dialogs/interactive_dialog.tscn" id="3_interactive"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/battle_log_view.tscn" id="4_log"]
+
+[node name="BattleScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_battle")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="Column" type="VBoxContainer" parent="Scroll/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="NetworkStatus" type="Label" parent="Scroll/Margin/Column"]
+layout_mode = 2
+text = "状态"
+theme_override_font_sizes/font_size = 14
+
+[node name="BackButton" type="Button" parent="Scroll/Margin/Column"]
+layout_mode = 2
+text = "返回模式选择 / 断开连接"
+
+[node name="Round" type="Label" parent="Scroll/Margin/Column"]
+layout_mode = 2
+text = "第 1 回合"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 24
+
+[node name="PlayerRow" type="HBoxContainer" parent="Scroll/Margin/Column"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="P1Panel" parent="Scroll/Margin/Column/PlayerRow" instance=ExtResource("2_player")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="P2Panel" parent="Scroll/Margin/Column/PlayerRow" instance=ExtResource("2_player")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InteractiveDialog" parent="Scroll/Margin/Column" instance=ExtResource("3_interactive")]
+layout_mode = 2
+
+[node name="ActionRow" type="HBoxContainer" parent="Scroll/Margin/Column"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="LogView" parent="Scroll/Margin/Column" instance=ExtResource("4_log")]
+layout_mode = 2

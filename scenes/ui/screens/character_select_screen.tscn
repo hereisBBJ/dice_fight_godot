@@ -1,0 +1,105 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/screens/character_select_screen.gd" id="1_char"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/battle_log_view.tscn" id="2_log"]
+
+[node name="CharacterSelectScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_char")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
+
+[node name="Column" type="VBoxContainer" parent="Scroll/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="Scroll/Margin/Column"]
+layout_mode = 2
+text = "角色选择"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+
+[node name="NetworkStatus" type="Label" parent="Scroll/Margin/Column"]
+layout_mode = 2
+text = "状态"
+theme_override_font_sizes/font_size = 14
+
+[node name="BackButton" type="Button" parent="Scroll/Margin/Column"]
+layout_mode = 2
+text = "返回模式选择 / 断开连接"
+
+[node name="Players" type="HBoxContainer" parent="Scroll/Margin/Column"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="P1Panel" type="PanelContainer" parent="Scroll/Margin/Column/Players"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Margin" type="MarginContainer" parent="Scroll/Margin/Column/Players/P1Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Column" type="VBoxContainer" parent="Scroll/Margin/Column/Players/P1Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Scroll/Margin/Column/Players/P1Panel/Margin/Column"]
+layout_mode = 2
+text = "P1"
+theme_override_font_sizes/font_size = 22
+
+[node name="Options" type="VBoxContainer" parent="Scroll/Margin/Column/Players/P1Panel/Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="P2Panel" type="PanelContainer" parent="Scroll/Margin/Column/Players"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Margin" type="MarginContainer" parent="Scroll/Margin/Column/Players/P2Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Column" type="VBoxContainer" parent="Scroll/Margin/Column/Players/P2Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="Scroll/Margin/Column/Players/P2Panel/Margin/Column"]
+layout_mode = 2
+text = "P2"
+theme_override_font_sizes/font_size = 22
+
+[node name="Options" type="VBoxContainer" parent="Scroll/Margin/Column/Players/P2Panel/Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LogView" parent="Scroll/Margin/Column" instance=ExtResource("2_log")]
+layout_mode = 2

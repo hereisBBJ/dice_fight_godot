@@ -3,12 +3,20 @@
 ## Project Context
 - This is a Godot 4.6 project for `Dice Fight`, a two-player turn-based dice combat game.
 - Treat `docs/GAME_DESIGN.md` as the gameplay source of truth and `docs/TECH_DESIGN.md` as the architecture source of truth.
-- The current milestone is a local hot-seat single-client demo before LAN networking.
+- Milestone 1 local hot-seat rules demo is implemented.
+- Milestone 2 LAN Host/Join foundation is implemented with host-authoritative commands and full snapshot sync.
+- Milestone 3 first UI pass is in progress: the main flow now uses editor-adjustable scene screens/components with placeholder visual assets.
 - Prioritize correct game logic, clear battle logs, and testable rule separation over polished visuals.
 
 ## Current Demo Scope
 - Supported characters for the current playable slice: Swordsman, Archer, Witch Doctor, and Pyromancer.
 - Implemented flow should remain: character select, augment select, battle, interactive judgment, game over, rematch.
+- LAN mode currently supports a host as P1 and one client as P2 over ENet on port `7777`.
+- Implemented status logic includes guard, immune, sure evasion, poison, burn, fire shield, eagle eye, flame tide, and Pyromancer rebirth.
+- UI screens/components for the current flow live under `scenes/ui/` with scripts under `scripts/ui/`; `scripts/ui/main.gd` remains the app controller and network command bridge.
+- Placeholder portraits, skill icons, status icons, dice art, and audio slots live under `assets/`; JSON asset path fields are optional and should fall back safely.
+- Burn judgment currently auto-accepts rolled dice; the design-doc interaction for rerolling/modifying burn dice is not implemented yet.
+- Audio feedback has editable stream slots, but final sound assets are not present yet.
 - Keep rules data-driven where practical:
   - Character data lives in `data/characters/`.
   - Common and character augments live in `data/augments_common.json` and `data/augments_character.json`.
@@ -16,10 +24,21 @@
 
 ## Engineering Preferences
 - Keep rule code under `scripts/rules/`, data loading under `scripts/data/`, and UI under `scripts/ui/`.
+- Keep LAN/network code under `scripts/network/`; clients submit commands and hosts mutate `BattleState`.
+- Prefer scene/component edits for UI layout work; keep screen scripts focused on rendering snapshots and emitting commands.
 - Do not put damage, MP, shield, dice, or status resolution directly in button callbacks.
 - Avoid `:=` in GDScript for values coming from JSON, dictionaries, or other `Variant` sources because this project treats type inference warnings as errors.
 - Preserve Chinese display text in UTF-8.
 - Use battle logs from the first version onward; logs are part of the debugging and player-understanding surface.
+
+## Progress Hygiene
+- After every important modification, explicitly re-check project progress before stopping:
+  - compare the change against `docs/GAME_DESIGN.md`, `docs/TECH_DESIGN.md`, and this `AGENTS.md`;
+  - update this file if the supported scope, milestones, test commands, known limitations, or tooling assumptions changed;
+  - run the smallest relevant validation set for the modified area;
+  - inspect `git status --short --branch` and summarize dirty files or commits needed.
+- Important modifications include adding or changing character rules, status rules, networking behavior, save/snapshot shape, UI flow, tests, project config, or MCP/tooling assumptions.
+- Do not present a milestone as complete unless the matching smoke tests and Godot startup/debug check pass, or explicitly state what could not be validated.
 
 ## Godot MCP
 - A Codex MCP server named `godot` is expected to be configured globally in `C:\Users\BBJ\.codex\config.toml`.
@@ -36,6 +55,13 @@
 - Run JSON parsing checks after editing data files.
 - Run the Godot project after GDScript changes when the MCP is available.
 - If Godot reports parse errors, fix the first reported script and rerun; many follow-on errors may be cascading.
+- Current useful checks:
+  - `godot --path . --headless --check-only`
+  - `godot --path . --headless --script res://tests/rules/rule_smoke_test.gd`
+  - `godot --path . --headless --script res://tests/rules/status_and_new_characters_test.gd`
+  - `godot --path . --headless --script res://tests/network/network_controller_smoke_test.gd`
+  - `godot --path . --headless --script res://tests/ui/main_network_lifetime_test.gd`
+  - `godot --path . --headless --script res://tests/ui/presentation_screens_smoke_test.gd`
 
 ## Git
 - The repository remote is `git@github.com:hereisBBJ/dice_fight_godot.git`.

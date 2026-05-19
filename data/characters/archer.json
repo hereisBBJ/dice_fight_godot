@@ -2,6 +2,7 @@
   "id": "archer",
   "name": "弓箭手",
   "theme_color": "#54b779",
+  "portrait_path": "res://assets/characters/archer.svg",
   "initial_hp": 80,
   "max_hp": 80,
   "initial_mp": 30,
@@ -16,6 +17,7 @@
 	{
 	  "id": "archer_shot",
 	  "name": "射击",
+	  "icon_path": "res://assets/skills/archer_shot.svg",
 	  "type": "attack",
 	  "cost": 0,
 	  "dice_requirements": ["1-3", "1-3"],
@@ -30,6 +32,7 @@
 	{
 	  "id": "archer_backstep",
 	  "name": "后跳",
+	  "icon_path": "res://assets/skills/archer_backstep.svg",
 	  "type": "defense",
 	  "cost": 20,
 	  "dice_requirements": [6, "1-3", "1-3"],
@@ -44,6 +47,7 @@
 	{
 	  "id": "archer_piercing_arrow",
 	  "name": "穿甲箭",
+	  "icon_path": "res://assets/skills/archer_piercing_arrow.svg",
 	  "type": "attack",
 	  "cost": 20,
 	  "dice_requirements": [6, 6, "1-3"],
@@ -55,6 +59,7 @@
 	{
 	  "id": "archer_eagle_eye",
 	  "name": "鹰眼",
+	  "icon_path": "res://assets/skills/archer_eagle_eye.svg",
 	  "type": "defense",
 	  "cost": 0,
 	  "dice_requirements": [6, "1-3"],

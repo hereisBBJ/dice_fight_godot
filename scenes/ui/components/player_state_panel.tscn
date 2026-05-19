@@ -1,0 +1,119 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/player_state_panel.gd" id="1_player"]
+
+[node name="PlayerStatePanel" type="PanelContainer"]
+custom_minimum_size = Vector2(400, 278)
+script = ExtResource("1_player")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Portrait" type="TextureRect" parent="Margin/Column/Header"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Info" type="VBoxContainer" parent="Margin/Column/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Name" type="Label" parent="Margin/Column/Header/Info"]
+layout_mode = 2
+text = "P1"
+theme_override_font_sizes/font_size = 22
+
+[node name="Role" type="Label" parent="Margin/Column/Header/Info"]
+layout_mode = 2
+text = "进攻方"
+theme_override_font_sizes/font_size = 15
+
+[node name="Feedback" type="Label" parent="Margin/Column/Header/Info"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="Stats" type="VBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="HpBar" type="ProgressBar" parent="Margin/Column/Stats"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="Label" type="Label" parent="Margin/Column/Stats/HpBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MpBar" type="ProgressBar" parent="Margin/Column/Stats"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+max_value = 100.0
+value = 50.0
+show_percentage = false
+
+[node name="Label" type="Label" parent="Margin/Column/Stats/MpBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ShieldBar" type="ProgressBar" parent="Margin/Column/Stats"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+max_value = 100.0
+show_percentage = false
+
+[node name="Label" type="Label" parent="Margin/Column/Stats/ShieldBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DiceSlot" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="StatusRow" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Augments" type="Label" parent="Margin/Column"]
+layout_mode = 2
+text = "强化：未选择"
+autowrap_mode = 2
+theme_override_font_sizes/font_size = 13
+
+[node name="Action" type="Label" parent="Margin/Column"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14

@@ -2,41 +2,49 @@
   {
     "id": "guard",
     "name": "格挡",
+    "icon_path": "res://assets/status/guard.svg",
     "description": "下次受到普通伤害时，原始伤害 -10。"
   },
   {
     "id": "sure_evasion",
     "name": "必定闪避",
+    "icon_path": "res://assets/status/sure_evasion.svg",
     "description": "受到的普通伤害无效，持续到本回合结束。"
   },
   {
     "id": "immune",
     "name": "免疫",
+    "icon_path": "res://assets/status/immune.svg",
     "description": "受到的普通伤害无效，持续到本回合结束。"
   },
   {
     "id": "eagle_eye",
     "name": "鹰眼",
+    "icon_path": "res://assets/status/eagle_eye.svg",
     "description": "本局永久持续。射击必中，后跳判定除 1 外均成功。"
   },
   {
     "id": "poison",
     "name": "中毒",
+    "icon_path": "res://assets/status/poison.svg",
     "description": "回合开始时受到 5 点直接生命损失，持续 3 回合。"
   },
   {
     "id": "burn",
     "name": "灼烧",
+    "icon_path": "res://assets/status/burn.svg",
     "description": "回合开始时清除所有层数，并逐层掷 D6：奇数受到 10 点真实伤害。"
   },
   {
     "id": "fire_shield",
     "name": "火盾",
+    "icon_path": "res://assets/status/fire_shield.svg",
     "description": "本回合被破盾时，对攻击者反施加 1 层灼烧。"
   },
   {
     "id": "flame_tide",
     "name": "炎潮",
+    "icon_path": "res://assets/status/flame_tide.svg",
     "description": "本局永久持续。之后施加灼烧层数 +1。"
   }
 ]

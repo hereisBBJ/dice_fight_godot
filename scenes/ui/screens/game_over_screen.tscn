@@ -1,0 +1,73 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/screens/game_over_screen.gd" id="1_gameover"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/player_state_panel.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/components/battle_log_view.tscn" id="3_log"]
+
+[node name="GameOverScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_gameover")
+
+[node name="Scroll" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 18
+
+[node name="Column" type="VBoxContainer" parent="Scroll/Margin"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="Result" type="Label" parent="Scroll/Margin/Column"]
+layout_mode = 2
+text = "对局结束"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 32
+
+[node name="BackButton" type="Button" parent="Scroll/Margin/Column"]
+layout_mode = 2
+text = "返回模式选择 / 断开连接"
+
+[node name="PlayerRow" type="HBoxContainer" parent="Scroll/Margin/Column"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="P1Panel" parent="Scroll/Margin/Column/PlayerRow" instance=ExtResource("2_player")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="P2Panel" parent="Scroll/Margin/Column/PlayerRow" instance=ExtResource("2_player")]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Scroll/Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Rematch" type="Button" parent="Scroll/Margin/Column/Buttons"]
+layout_mode = 2
+text = "再来一局（保留角色与强化）"
+
+[node name="Reset" type="Button" parent="Scroll/Margin/Column/Buttons"]
+layout_mode = 2
+text = "重新选角"
+
+[node name="LogView" parent="Scroll/Margin/Column" instance=ExtResource("3_log")]
+layout_mode = 2

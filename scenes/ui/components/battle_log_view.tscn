@@ -1,0 +1,30 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/battle_log_view.gd" id="1_log"]
+
+[node name="BattleLogView" type="PanelContainer"]
+custom_minimum_size = Vector2(0, 210)
+script = ExtResource("1_log")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Margin/Column"]
+layout_mode = 2
+text = "战斗日志"
+theme_override_font_sizes/font_size = 18
+
+[node name="LogText" type="TextEdit" parent="Margin/Column"]
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+size_flags_vertical = 3
+editable = false
+wrap_mode = 1
