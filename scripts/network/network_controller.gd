@@ -194,7 +194,7 @@ func _on_peer_connected(peer_id: int) -> void:
 	status_message = "P2 已加入。主机为 P1，客户端为 P2。"
 	battle.append_log("P2 加入了 LAN 房间。")
 	client_receive_assignment.rpc_id(peer_id, 1)
-	client_receive_snapshot.rpc_id(peer_id, battle.to_snapshot())
+	client_receive_snapshot.rpc_id(peer_id, _snapshot_for_player(1))
 	_broadcast_snapshot()
 	status_changed.emit()
 
@@ -231,11 +231,51 @@ func _on_server_disconnected() -> void:
 func _broadcast_snapshot() -> void:
 	if mode != MODE_HOST:
 		return
-	var snapshot = battle.to_snapshot()
 	for peer_id in _peer_to_player.keys():
 		if int(peer_id) != 1:
-			client_receive_snapshot.rpc_id(int(peer_id), snapshot)
+			var player_id = int(_peer_to_player.get(peer_id, -1))
+			client_receive_snapshot.rpc_id(int(peer_id), _snapshot_for_player(player_id))
 	state_changed.emit()
+
+
+func _snapshot_for_player(player_id: int) -> Dictionary:
+	var snapshot: Dictionary = battle.to_snapshot()
+	if player_id < 0:
+		return snapshot
+	var hidden_player_id = 1 - player_id
+	if hidden_player_id >= 0 and hidden_player_id < snapshot.players.size():
+		var hidden_player: Dictionary = snapshot.players[hidden_player_id]
+		hidden_player.dice = []
+		hidden_player.submitted_action = {}
+		snapshot.players[hidden_player_id] = hidden_player
+	if hidden_player_id >= 0 and hidden_player_id < snapshot.pending_actions.size():
+		snapshot.pending_actions[hidden_player_id] = {}
+	if not snapshot.pending_interactive_request.is_empty() and int(snapshot.pending_interactive_request.get("responder_id", -1)) != player_id:
+		snapshot.pending_interactive_request = {}
+	snapshot.logs = _redacted_logs_for_player(snapshot.logs, hidden_player_id)
+	return snapshot
+
+
+func _redacted_logs_for_player(logs: Array, hidden_player_id: int) -> Array:
+	var filtered = []
+	for entry in logs:
+		var text = String(entry)
+		if _is_private_log_for_player(text, hidden_player_id):
+			continue
+		filtered.append(text)
+	return filtered
+
+
+func _is_private_log_for_player(text: String, player_id: int) -> bool:
+	if player_id < 0:
+		return false
+	var prefix = "P%d " % [player_id + 1]
+	return text.begins_with("%s提交技能" % prefix) \
+		or text.begins_with("%s选择跳过回合" % prefix) \
+		or text.begins_with("%s重掷骰子" % prefix) \
+		or text.begins_with("%s修改 1 颗骰子" % prefix) \
+		or text.begins_with("%s重掷判定骰" % prefix) \
+		or text.begins_with("%s修改判定骰" % prefix)
 
 
 @rpc("any_peer", "reliable")

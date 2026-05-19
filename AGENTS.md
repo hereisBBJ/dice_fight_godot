@@ -12,6 +12,7 @@
 - Supported characters for the current playable slice: Swordsman, Archer, Witch Doctor, and Pyromancer.
 - Implemented flow should remain: character select, augment select, battle, interactive judgment, game over, rematch.
 - LAN mode currently supports a host as P1 and one client as P2 over ENet on port `7777`.
+- During LAN battle, each player should only see their own dice and pending skill choice; opponent dice, pending action, and related private submit/reroll/modify log entries are hidden/redacted.
 - Implemented status logic includes guard, immune, sure evasion, poison, burn, fire shield, eagle eye, flame tide, and Pyromancer rebirth.
 - UI screens/components for the current flow live under `scenes/ui/` with scripts under `scripts/ui/`; `scripts/ui/main.gd` remains the app controller and network command bridge.
 - Placeholder portraits, skill icons, status icons, dice art, and audio slots live under `assets/`; JSON asset path fields are optional and should fall back safely.

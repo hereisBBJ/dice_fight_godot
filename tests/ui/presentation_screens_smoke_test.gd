@@ -9,6 +9,7 @@ func _init() -> void:
 	var main = MainScene.instantiate()
 	root.add_child(main)
 	await process_frame
+	_expect(load("res://assets/characters/pyromancer_portrait.svg") is Texture2D, "pyromancer portrait should load as texture")
 
 	main._on_start_local_requested()
 	await process_frame

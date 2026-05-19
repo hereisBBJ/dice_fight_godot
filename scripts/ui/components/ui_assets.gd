@@ -11,7 +11,7 @@ static func color_from_hex(value: String, fallback: Color = Color(0.36, 0.45, 0.
 
 
 static func texture_from_path(path: String, fallback_color: Color, size: Vector2i = Vector2i(128, 128)) -> Texture2D:
-	if not path.is_empty() and ResourceLoader.exists(path):
+	if not path.is_empty():
 		var loaded = load(path)
 		if loaded is Texture2D:
 			return loaded

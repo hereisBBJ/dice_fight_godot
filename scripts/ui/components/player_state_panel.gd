@@ -29,7 +29,7 @@ func _ready() -> void:
 	dice_slot.add_child(_dice_view)
 
 
-func set_player(player_id: int, battle, animate: bool = false) -> void:
+func set_player(player_id: int, battle, animate: bool = false, hide_private_info: bool = false) -> void:
 	var player: Dictionary = battle.players[player_id]
 	var character: Dictionary = player.get("character", {})
 	var theme_color = UIAssetsScript.color_from_hex(String(character.get("theme_color", "")), Color(0.36, 0.45, 0.65))
@@ -40,10 +40,20 @@ func set_player(player_id: int, battle, animate: bool = false) -> void:
 	_set_bar(hp_bar, "HP", int(player.get("hp", 0)), int(player.get("max_hp", 1)), Color(0.86, 0.20, 0.22))
 	_set_bar(mp_bar, "MP", int(player.get("mp", 0)), int(player.get("max_mp", 1)), Color(0.25, 0.48, 0.92))
 	_set_bar(shield_bar, "护盾", int(player.get("shield", 0)), int(player.get("max_shield", 1)), Color(0.35, 0.68, 0.90))
-	_dice_view.set_dice(player.get("dice", []), animate)
+	if hide_private_info:
+		_dice_view.set_dice([], false)
+		dice_slot.tooltip_text = "联机对战中隐藏敌方骰子。"
+	else:
+		_dice_view.set_dice(player.get("dice", []), animate)
+		dice_slot.tooltip_text = ""
 	_render_statuses(player, battle.status_effects)
 	augment_label.text = "强化：%s" % battle.augment_text(player_id)
-	action_label.text = "" if player.get("submitted_action", {}).is_empty() else "已提交：%s" % _action_text(player.get("submitted_action", {}))
+	if hide_private_info:
+		action_label.text = "敌方行动：隐藏"
+	elif player.get("submitted_action", {}).is_empty():
+		action_label.text = ""
+	else:
+		action_label.text = "已提交：%s" % _action_text(player.get("submitted_action", {}))
 	_render_feedback(player)
 	_last_hp = int(player.get("hp", 0))
 	_last_mp = int(player.get("mp", 0))

@@ -7,14 +7,17 @@ signal back_requested
 const SkillButtonScene = preload("res://scenes/ui/components/skill_button.tscn")
 const UIAssetsScript = preload("res://scripts/ui/components/ui_assets.gd")
 
-@onready var status_label: Label = $Scroll/Margin/Column/NetworkStatus
-@onready var back_button: Button = $Scroll/Margin/Column/BackButton
-@onready var round_label: Label = $Scroll/Margin/Column/Round
-@onready var p1_panel = $Scroll/Margin/Column/PlayerRow/P1Panel
-@onready var p2_panel = $Scroll/Margin/Column/PlayerRow/P2Panel
-@onready var action_row: HBoxContainer = $Scroll/Margin/Column/ActionRow
-@onready var interactive_dialog = $Scroll/Margin/Column/InteractiveDialog
-@onready var log_view = $Scroll/Margin/Column/LogView
+@onready var status_label: Label = $Margin/Column/Header/NetworkStatus
+@onready var back_button: Button = $Margin/Column/Header/BackButton
+@onready var round_label: Label = $Margin/Column/Round
+@onready var enemy_title: Label = $Margin/Column/GridScroll/GridMargin/BattleGrid/EnemyCell/EnemyTitle
+@onready var self_title: Label = $Margin/Column/GridScroll/GridMargin/BattleGrid/SelfCell/SelfTitle
+@onready var action_title: Label = $Margin/Column/GridScroll/GridMargin/BattleGrid/ActionCell/ActionTitle
+@onready var enemy_panel = $Margin/Column/GridScroll/GridMargin/BattleGrid/EnemyCell/EnemyPanel
+@onready var self_panel = $Margin/Column/GridScroll/GridMargin/BattleGrid/SelfCell/SelfPanel
+@onready var action_slot: VBoxContainer = $Margin/Column/GridScroll/GridMargin/BattleGrid/ActionCell/ActionSlot
+@onready var interactive_dialog = $Margin/Column/GridScroll/GridMargin/BattleGrid/ActionCell/InteractiveDialog
+@onready var log_view = $Margin/Column/GridScroll/GridMargin/BattleGrid/LogCell/LogView
 
 var battle
 var network_controller
@@ -33,6 +36,8 @@ func setup(new_battle, new_network_controller) -> void:
 	var snapshot_text = JSON.stringify(battle.to_snapshot())
 	var animate = snapshot_text != _last_snapshot_text and not _last_snapshot_text.is_empty()
 	_last_snapshot_text = snapshot_text
+	var self_id = _self_player_id()
+	var enemy_id = 1 - self_id
 	status_label.text = _network_text()
 	round_label.text = "第 %d 回合 | P%d %s，P%d %s" % [
 		battle.round_num,
@@ -41,30 +46,52 @@ func setup(new_battle, new_network_controller) -> void:
 		(1 - battle.attacker_id) + 1,
 		battle.role_text(1 - battle.attacker_id)
 	]
-	p1_panel.set_player(0, battle, animate)
-	p2_panel.set_player(1, battle, animate)
+	enemy_title.text = "敌方状态（P%d）" % [enemy_id + 1]
+	self_title.text = "我方状态（P%d）" % [self_id + 1]
+	action_title.text = "我方技能选择" if network_controller.mode != network_controller.MODE_LOCAL else "本机行动选择"
+	enemy_panel.set_player(enemy_id, battle, animate, _should_hide_enemy_private_info(enemy_id))
+	self_panel.set_player(self_id, battle, animate, false)
 	interactive_dialog.setup(battle, network_controller)
 	if not interactive_dialog.interactive_command.is_connected(_on_interactive_command):
 		interactive_dialog.interactive_command.connect(_on_interactive_command)
-	action_row.visible = battle.phase != battle.PHASE_INTERACTIVE
-	if action_row.visible:
-		_render_actions()
-	log_view.set_logs(battle.logs)
+	action_slot.visible = battle.phase != battle.PHASE_INTERACTIVE
+	if action_slot.visible:
+		_render_actions(self_id)
+	log_view.set_logs(_visible_logs_for_local_player())
 
 
-func _render_actions() -> void:
-	for child in action_row.get_children():
+func _self_player_id() -> int:
+	if network_controller.mode == network_controller.MODE_LOCAL:
+		return 0
+	return max(0, network_controller.local_player_id)
+
+
+func _should_hide_enemy_private_info(enemy_id: int) -> bool:
+	return network_controller.mode != network_controller.MODE_LOCAL and not network_controller.can_control_player(enemy_id)
+
+
+func _render_actions(self_id: int) -> void:
+	for child in action_slot.get_children():
 		child.queue_free()
-	_render_action_panel(0)
-	_render_action_panel(1)
+	if network_controller.mode == network_controller.MODE_LOCAL:
+		var local_row = HBoxContainer.new()
+		local_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		local_row.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		local_row.add_theme_constant_override("separation", 10)
+		action_slot.add_child(local_row)
+		_render_action_panel(0, local_row)
+		_render_action_panel(1, local_row)
+	else:
+		_render_action_panel(self_id, action_slot)
 
 
-func _render_action_panel(player_id: int) -> void:
+func _render_action_panel(player_id: int, parent: Container) -> void:
 	var player: Dictionary = battle.players[player_id]
 	var panel = PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.09, 0.10, 0.12, 0.92)))
-	action_row.add_child(panel)
+	parent.add_child(panel)
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 10)
 	margin.add_theme_constant_override("margin_top", 10)
@@ -89,7 +116,7 @@ func _render_action_panel(player_id: int) -> void:
 	skill_label.text = "可用技能"
 	column.add_child(skill_label)
 	var skill_grid = GridContainer.new()
-	skill_grid.columns = 2
+	skill_grid.columns = 1
 	skill_grid.add_theme_constant_override("h_separation", 8)
 	skill_grid.add_theme_constant_override("v_separation", 8)
 	column.add_child(skill_grid)
@@ -162,6 +189,29 @@ func _add_skill_button(parent: GridContainer, player_id: int, skill: Dictionary,
 		})
 	)
 	parent.add_child(button)
+
+
+func _visible_logs_for_local_player() -> Array:
+	if network_controller.mode == network_controller.MODE_LOCAL:
+		return battle.logs
+	var hidden_player_id = 1 - _self_player_id()
+	var filtered = []
+	for entry in battle.logs:
+		var text = String(entry)
+		if _is_private_log_for_player(text, hidden_player_id):
+			continue
+		filtered.append(text)
+	return filtered
+
+
+func _is_private_log_for_player(text: String, player_id: int) -> bool:
+	var prefix = "P%d " % [player_id + 1]
+	return text.begins_with("%s提交技能" % prefix) \
+		or text.begins_with("%s选择跳过回合" % prefix) \
+		or text.begins_with("%s重掷骰子" % prefix) \
+		or text.begins_with("%s修改 1 颗骰子" % prefix) \
+		or text.begins_with("%s重掷判定骰" % prefix) \
+		or text.begins_with("%s修改判定骰" % prefix)
 
 
 func _add_hint(parent: VBoxContainer, text: String) -> void:

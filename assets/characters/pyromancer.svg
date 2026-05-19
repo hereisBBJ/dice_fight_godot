@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><rect width="256" height="256" rx="24" fill="#dc5d3d"/><path d="M128 28c34 36 18 56 48 86 18 18 24 44 10 70-17 32-51 42-58 42s-41-10-58-42c-14-26-8-52 10-70 30-30 14-50 48-86z" fill="#ffd166"/><circle cx="128" cy="94" r="31" fill="#fff5df"/><path d="M74 218c12-58 96-58 108 0z" fill="#4a2018"/><text x="128" y="238" text-anchor="middle" font-family="Arial" font-size="19" fill="#ffffff">FLAME</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="24" fill="#dc5d3d"/>
+  <polygon points="128,24 170,92 204,152 178,214 128,232 78,214 52,152 86,92" fill="#ffd166"/>
+  <polygon points="128,56 154,112 178,158 160,204 128,218 96,204 78,158 102,112" fill="#ff8a3d"/>
+  <circle cx="128" cy="88" r="30" fill="#fff5df"/>
+  <rect x="78" y="144" width="100" height="76" rx="36" fill="#4a2018"/>
+  <circle cx="116" cy="86" r="5" fill="#4a2018"/>
+  <circle cx="140" cy="86" r="5" fill="#4a2018"/>
+</svg>

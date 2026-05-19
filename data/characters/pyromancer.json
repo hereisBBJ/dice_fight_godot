@@ -2,7 +2,7 @@
   "id": "pyromancer",
   "name": "炎术师",
   "theme_color": "#dc5d3d",
-  "portrait_path": "res://assets/characters/pyromancer.svg",
+  "portrait_path": "res://assets/characters/pyromancer_portrait.svg",
   "initial_hp": 100,
   "max_hp": 100,
   "initial_mp": 30,

@@ -1,6 +1,6 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=5 format=3 uid="uid://ddimkheiopul1"]
 
-[ext_resource type="Script" path="res://scripts/ui/screens/battle_screen.gd" id="1_battle"]
+[ext_resource type="Script" uid="uid://c40vm5etxub5a" path="res://scripts/ui/screens/battle_screen.gd" id="1_battle"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/player_state_panel.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogs/interactive_dialog.tscn" id="3_interactive"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/battle_log_view.tscn" id="4_log"]
@@ -14,62 +14,145 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_battle")
 
-[node name="Scroll" type="ScrollContainer" parent="."]
+[node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 12
 
-[node name="Margin" type="MarginContainer" parent="Scroll"]
+[node name="Column" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 16
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 16
+size_flags_vertical = 3
+theme_override_constants/separation = 8
 
-[node name="Column" type="VBoxContainer" parent="Scroll/Margin"]
+[node name="Header" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="NetworkStatus" type="Label" parent="Margin/Column/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
-
-[node name="NetworkStatus" type="Label" parent="Scroll/Margin/Column"]
-layout_mode = 2
-text = "状态"
 theme_override_font_sizes/font_size = 14
+text = "状态"
+autowrap_mode = 2
 
-[node name="BackButton" type="Button" parent="Scroll/Margin/Column"]
+[node name="BackButton" type="Button" parent="Margin/Column/Header"]
 layout_mode = 2
 text = "返回模式选择 / 断开连接"
 
-[node name="Round" type="Label" parent="Scroll/Margin/Column"]
+[node name="Round" type="Label" parent="Margin/Column"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 22
 text = "第 1 回合"
 horizontal_alignment = 1
-theme_override_font_sizes/font_size = 24
 
-[node name="PlayerRow" type="HBoxContainer" parent="Scroll/Margin/Column"]
+[node name="GridScroll" type="ScrollContainer" parent="Margin/Column"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+size_flags_vertical = 3
+horizontal_scroll_mode = 2
+vertical_scroll_mode = 2
 
-[node name="P1Panel" parent="Scroll/Margin/Column/PlayerRow" instance=ExtResource("2_player")]
+[node name="GridMargin" type="MarginContainer" parent="Margin/Column/GridScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
 
-[node name="P2Panel" parent="Scroll/Margin/Column/PlayerRow" instance=ExtResource("2_player")]
+[node name="BattleGrid" type="GridContainer" parent="Margin/Column/GridScroll/GridMargin"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 2
 
-[node name="InteractiveDialog" parent="Scroll/Margin/Column" instance=ExtResource("3_interactive")]
-layout_mode = 2
-
-[node name="ActionRow" type="HBoxContainer" parent="Scroll/Margin/Column"]
+[node name="EnemyCell" type="VBoxContainer" parent="Margin/Column/GridScroll/GridMargin/BattleGrid"]
+custom_minimum_size = Vector2(320, 235)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+size_flags_vertical = 3
+theme_override_constants/separation = 6
 
-[node name="LogView" parent="Scroll/Margin/Column" instance=ExtResource("4_log")]
+[node name="EnemyTitle" type="Label" parent="Margin/Column/GridScroll/GridMargin/BattleGrid/EnemyCell"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "敌方状态"
+horizontal_alignment = 1
+
+[node name="EnemyPanel" parent="Margin/Column/GridScroll/GridMargin/BattleGrid/EnemyCell" instance=ExtResource("2_player")]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="LogCell" type="VBoxContainer" parent="Margin/Column/GridScroll/GridMargin/BattleGrid"]
+custom_minimum_size = Vector2(320, 235)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="LogTitle" type="Label" parent="Margin/Column/GridScroll/GridMargin/BattleGrid/LogCell"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "战斗日志"
+horizontal_alignment = 1
+
+[node name="LogView" parent="Margin/Column/GridScroll/GridMargin/BattleGrid/LogCell" instance=ExtResource("4_log")]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SelfCell" type="VBoxContainer" parent="Margin/Column/GridScroll/GridMargin/BattleGrid"]
+custom_minimum_size = Vector2(320, 235)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="SelfTitle" type="Label" parent="Margin/Column/GridScroll/GridMargin/BattleGrid/SelfCell"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "我方状态"
+horizontal_alignment = 1
+
+[node name="SelfPanel" parent="Margin/Column/GridScroll/GridMargin/BattleGrid/SelfCell" instance=ExtResource("2_player")]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ActionCell" type="VBoxContainer" parent="Margin/Column/GridScroll/GridMargin/BattleGrid"]
+custom_minimum_size = Vector2(320, 235)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="ActionTitle" type="Label" parent="Margin/Column/GridScroll/GridMargin/BattleGrid/ActionCell"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "我方技能选择"
+horizontal_alignment = 1
+
+[node name="InteractiveDialog" parent="Margin/Column/GridScroll/GridMargin/BattleGrid/ActionCell" instance=ExtResource("3_interactive")]
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+
+[node name="ActionSlot" type="VBoxContainer" parent="Margin/Column/GridScroll/GridMargin/BattleGrid/ActionCell"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6

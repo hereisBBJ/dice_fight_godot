@@ -42,8 +42,19 @@ func _render_player_column(player_id: int, title: Label, options: VBoxContainer)
 	character_ids.sort()
 	for character_id in character_ids:
 		var character: Dictionary = battle.characters[character_id]
+		var card = HBoxContainer.new()
+		card.custom_minimum_size = Vector2(0, 112)
+		card.add_theme_constant_override("separation", 10)
+		options.add_child(card)
+		var portrait = TextureRect.new()
+		portrait.custom_minimum_size = Vector2(86, 86)
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.texture = UIAssetsScript.texture_from_path(String(character.get("portrait_path", "")), UIAssetsScript.color_from_hex(String(character.get("theme_color", ""))), Vector2i(96, 96))
+		card.add_child(portrait)
 		var button = Button.new()
 		button.custom_minimum_size = Vector2(0, 108)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.text = "%s\nHP %d / MP %d / 护盾 %d\n%s：%s" % [
 			String(character.get("name", character_id)),
@@ -53,8 +64,6 @@ func _render_player_column(player_id: int, title: Label, options: VBoxContainer)
 			String(character.get("passive", {}).get("name", "被动")),
 			String(character.get("passive", {}).get("description", ""))
 		]
-		button.icon = UIAssetsScript.texture_from_path(String(character.get("portrait_path", "")), UIAssetsScript.color_from_hex(String(character.get("theme_color", ""))), Vector2i(64, 64))
-		button.expand_icon = true
 		button.disabled = not network_controller.can_control_player(player_id) or String(player.get("character_id", "")) == String(character_id)
 		var selected_id = String(character_id)
 		button.pressed.connect(func():
@@ -63,7 +72,7 @@ func _render_player_column(player_id: int, title: Label, options: VBoxContainer)
 				"character_id": selected_id
 			})
 		)
-		options.add_child(button)
+		card.add_child(button)
 
 
 func _network_text() -> String:
