@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://4xftonwlnlq7"
-path="res://.godot/imported/swordsman.svg-85fc4e4c25197ae89b7e6f97a4823d9d.ctex"
+uid="uid://g3gvx0jlfmgd"
+path="res://.godot/imported/archer_piercing_arrow.svg-a9094168b5265c38d68d3f6a9b673e02.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/swordsman.svg"
-dest_files=["res://.godot/imported/swordsman.svg-85fc4e4c25197ae89b7e6f97a4823d9d.ctex"]
+source_file="res://assets/skills/archer/archer_piercing_arrow.svg"
+dest_files=["res://.godot/imported/archer_piercing_arrow.svg-a9094168b5265c38d68d3f6a9b673e02.ctex"]
 
 [params]
 

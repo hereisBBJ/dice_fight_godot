@@ -3,7 +3,7 @@
     "id": "guard",
     "name": "格挡",
     "icon_path": "res://assets/status/guard.svg",
-    "description": "下次受到普通伤害时，原始伤害 -10。"
+    "description": "本回合内每次受到普通伤害时，原始伤害 -5。"
   },
   {
     "id": "sure_evasion",

@@ -23,7 +23,7 @@ var status_effects: Dictionary = {}
 var phase = PHASE_CHARACTER_SELECT
 var players: Array = []
 var round_num = 0
-var attacker_id = 0
+var first_player_id = 0
 var winner_id = -1
 var logs: Array = []
 var pending_actions: Array = [{}, {}]
@@ -50,7 +50,7 @@ func reset_to_character_select() -> void:
 	phase = PHASE_CHARACTER_SELECT
 	players = [_empty_player(0), _empty_player(1)]
 	round_num = 0
-	attacker_id = 0
+	first_player_id = 0
 	winner_id = -1
 	pending_actions = [{}, {}]
 	augment_candidates = [{}, {}]
@@ -199,11 +199,11 @@ func _apply_augment(player_id: int, augment: Dictionary) -> void:
 
 
 func _start_battle() -> void:
-	attacker_id = rng.randi_range(0, 1)
+	first_player_id = rng.randi_range(0, 1)
 	round_num = 1
 	winner_id = -1
 	phase = PHASE_BATTLE
-	_log("战斗开始。P%d 为首个进攻方。" % [attacker_id + 1])
+	_log("战斗开始。P%d 为首个先手玩家。" % [first_player_id + 1])
 	_begin_round(false)
 
 
@@ -227,13 +227,13 @@ func _begin_round(carry_last_turn: bool) -> void:
 		}
 		player.dice = DiceRulesScript.roll_dice(rng, 4)
 		players[player_id] = player
-	_log("第 %d 回合开始。P%d 进攻，P%d 防守。" % [round_num, attacker_id + 1, _defender_id() + 1])
+	_log("第 %d 回合开始。P%d 先手，P%d 后手。" % [round_num, first_player_id + 1, _second_player_id() + 1])
 	_resolve_round_start_statuses()
 	_check_game_over()
 
 
-func _defender_id() -> int:
-	return 1 - attacker_id
+func _second_player_id() -> int:
+	return 1 - first_player_id
 
 
 func reroll_dice(player_id: int) -> bool:
@@ -325,7 +325,7 @@ func submit_skill(player_id: int, skill_id: String, modes: Array = []) -> bool:
 func _try_resolve_turn() -> void:
 	if not pending_actions[0].is_empty() and not pending_actions[1].is_empty():
 		phase = PHASE_RESOLVING
-		_resolution_order = [_defender_id(), attacker_id]
+		_resolution_order = [first_player_id, _second_player_id()]
 		_resolution_index = 0
 		_continue_resolution()
 
@@ -333,8 +333,8 @@ func _try_resolve_turn() -> void:
 func _continue_resolution() -> void:
 	while phase == PHASE_RESOLVING and _resolution_index < _resolution_order.size():
 		var actor_id = int(_resolution_order[_resolution_index])
-		if actor_id == attacker_id and players[attacker_id].hp <= 0:
-			_log("进攻方已无法行动。")
+		if players[actor_id].hp <= 0:
+			_log("P%d 已无法行动。" % [actor_id + 1])
 			break
 		var completed = _execute_action(actor_id)
 		if not completed:
@@ -370,7 +370,7 @@ func _execute_action(actor_id: int) -> bool:
 		return true
 	players[actor_id].mp -= cost
 	players[actor_id].per_turn_flags.used_skill = true
-	if String(skill.type) == "attack":
+	if _skill_is_attack(skill):
 		players[actor_id].per_turn_flags.used_attack_skill = true
 	_log("P%d 结算 %s，消耗 %d MP。" % [actor_id + 1, skill.name, cost])
 	for effect in skill.effects:
@@ -574,7 +574,7 @@ func _apply_damage(attacker: int, target: int, amount: int, break_life_damage: i
 		_log("P%d 必定闪避，普通伤害无效。" % [target + 1])
 		return result
 	var reduced_amount = amount
-	var guard_value = _consume_guard(target)
+	var guard_value = _guard_value(target)
 	if guard_value > 0:
 		reduced_amount = max(0, reduced_amount - guard_value)
 		_log("P%d 格挡减伤 %d，伤害变为 %d。" % [target + 1, guard_value, reduced_amount])
@@ -584,16 +584,26 @@ func _apply_damage(attacker: int, target: int, amount: int, break_life_damage: i
 		result.hp_damage = _deal_life_damage(attacker, target, reduced_amount, skill_id)
 	else:
 		var shield_before = int(players[target].shield)
-		if reduced_amount <= shield_before:
+		var shield_half_floor = int(floor(float(shield_before) / 2.0))
+		if reduced_amount <= shield_half_floor:
 			players[target].shield -= reduced_amount
 			result.shield_damage = reduced_amount
 			_log("P%d 的护盾吸收 %d 伤害（剩余 %d）。" % [target + 1, reduced_amount, players[target].shield])
+		elif reduced_amount <= shield_before:
+			result.broke_shield = true
+			result.shield_damage = shield_before
+			players[target].shield = 0
+			_log("P%d 的护盾被击破，但没有造成生命伤害。" % [target + 1])
+			if _has_status(target, "fire_shield"):
+				_log("P%d 的火盾被破盾触发，对 P%d 反施加灼烧。" % [target + 1, attacker + 1])
+				_add_burn(target, attacker, 1)
 		else:
 			result.broke_shield = true
 			result.shield_damage = shield_before
 			players[target].shield = 0
-			var life_damage = break_life_damage + _augment_sum(players[attacker], "break_life_damage_bonus")
-			_log("P%d 的护盾被击破，造成固定破盾生命伤害 %d。" % [target + 1, life_damage])
+			var overflow_damage = reduced_amount - shield_before
+			var life_damage = int(ceil(float(overflow_damage) / 2.0)) + break_life_damage + _augment_sum(players[attacker], "break_life_damage_bonus")
+			_log("P%d 的护盾被击破，溢出伤害 %d，造成 %d 点生命伤害。" % [target + 1, overflow_damage, life_damage])
 			result.hp_damage = _deal_life_damage(attacker, target, life_damage, skill_id)
 			if _has_status(target, "fire_shield"):
 				_log("P%d 的火盾被破盾触发，对 P%d 反施加灼烧。" % [target + 1, attacker + 1])
@@ -659,8 +669,8 @@ func _try_first_aid(player_id: int) -> void:
 
 
 func _try_sword_spirit(attacker: int, hp_damage: int) -> void:
-	if players[attacker].character_id == "swordsman" and attacker == attacker_id and hp_damage >= 20:
-		_gain_shield(attacker, 10)
+	if players[attacker].character_id == "swordsman" and attacker == first_player_id and hp_damage >= 20:
+		_gain_shield(attacker, 5)
 		_log("P%d 触发剑意激荡。" % [attacker + 1])
 
 
@@ -749,13 +759,11 @@ func _resolve_burn_status(target_id: int, status: Dictionary) -> void:
 			return
 
 
-func _consume_guard(player_id: int) -> int:
-	for index in range(players[player_id].statuses.size()):
-		var status: Dictionary = players[player_id].statuses[index]
+
+func _guard_value(player_id: int) -> int:
+	for status in players[player_id].statuses:
 		if String(status.id) == "guard":
-			var value = int(status.value)
-			players[player_id].statuses.remove_at(index)
-			return value
+			return int(status.value)
 	return 0
 
 
@@ -783,7 +791,7 @@ func _finish_round() -> void:
 	_check_game_over()
 	if phase == PHASE_GAME_OVER:
 		return
-	attacker_id = _defender_id()
+	first_player_id = _second_player_id()
 	round_num += 1
 	phase = PHASE_BATTLE
 	_begin_round(true)
@@ -836,7 +844,7 @@ func to_snapshot() -> Dictionary:
 		"phase": phase,
 		"players": players.duplicate(true),
 		"round_num": round_num,
-		"attacker_id": attacker_id,
+		"first_player_id": first_player_id,
 		"winner_id": winner_id,
 		"logs": logs.duplicate(true),
 		"pending_actions": pending_actions.duplicate(true),
@@ -849,7 +857,7 @@ func apply_snapshot(snapshot: Dictionary) -> void:
 	phase = String(snapshot.get("phase", PHASE_CHARACTER_SELECT))
 	players = snapshot.get("players", [_empty_player(0), _empty_player(1)]).duplicate(true)
 	round_num = int(snapshot.get("round_num", 0))
-	attacker_id = int(snapshot.get("attacker_id", 0))
+	first_player_id = int(snapshot.get("first_player_id", snapshot.get("attacker_id", 0)))
 	winner_id = int(snapshot.get("winner_id", -1))
 	logs = snapshot.get("logs", []).duplicate(true)
 	pending_actions = snapshot.get("pending_actions", [{}, {}]).duplicate(true)
@@ -883,11 +891,9 @@ func get_skill(player_id: int, skill_id: String) -> Dictionary:
 func get_allowed_skills(player_id: int) -> Array:
 	if not _valid_player(player_id) or players[player_id].character.is_empty():
 		return []
-	var role_type = "attack" if player_id == attacker_id else "defense"
 	var result = []
 	for skill in players[player_id].character.get("skills", []):
-		if String(skill.type) == role_type:
-			result.append(skill)
+		result.append(skill)
 	return result
 
 
@@ -900,9 +906,6 @@ func get_skill_block_reason(player_id: int, skill: Dictionary, modes: Array = []
 		return "玩家不存在"
 	if not during_resolution and not players[player_id].submitted_action.is_empty():
 		return "本回合已经提交行动"
-	var expected_type = "attack" if player_id == attacker_id else "defense"
-	if String(skill.type) != expected_type:
-		return "当前身份不能使用该类型技能"
 	if not DiceRulesScript.requirements_met(players[player_id].dice, skill.get("dice_requirements", [])):
 		return "骰子需求不满足"
 	if String(skill.id) == "archer_piercing_arrow" and int(players[player_id].dealt_damage_last_turn) > 0:
@@ -958,10 +961,14 @@ func _modified_damage(player_id: int, skill: Dictionary, base_amount: int) -> in
 		if String(augment.effect) == "skill_damage_bonus" and String(augment.get("target_skill", "")) == String(skill.id):
 			amount += int(augment.amount)
 	amount += _augment_sum(players[player_id], "damage_bonus")
-	if player_id == attacker_id and String(skill.type) == "attack" and _has_augment(players[player_id], "initiative_pressure") and not bool(players[player_id].per_turn_flags.get("first_attack_bonus_used", false)):
+	if player_id == first_player_id and _skill_is_attack(skill) and _has_augment(players[player_id], "initiative_pressure") and not bool(players[player_id].per_turn_flags.get("first_attack_bonus_used", false)):
 		amount += 10
 		players[player_id].per_turn_flags.first_attack_bonus_used = true
 	return max(0, amount)
+
+
+func _skill_is_attack(skill: Dictionary) -> bool:
+	return String(skill.get("type", "")) == "attack"
 
 
 func _modified_shield_gain(player_id: int, skill: Dictionary, base_amount: int) -> int:
@@ -1015,7 +1022,7 @@ func augment_text(player_id: int) -> String:
 
 
 func role_text(player_id: int) -> String:
-	return "进攻方" if player_id == attacker_id else "防守方"
+	return "先手" if player_id == first_player_id else "后手"
 
 
 func _dice_text(dice: Array) -> String:

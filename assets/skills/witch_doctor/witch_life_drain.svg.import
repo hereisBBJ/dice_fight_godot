@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ccoiaa5tjy7rt"
-path="res://.godot/imported/pyromancer_fireball.svg-1d585a954e3d76111bbfa975438964eb.ctex"
+uid="uid://cvnlwtm8pmm2v"
+path="res://.godot/imported/witch_life_drain.svg-35592142ff73ea6445a7bbacbdbb6be4.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/pyromancer_fireball.svg"
-dest_files=["res://.godot/imported/pyromancer_fireball.svg-1d585a954e3d76111bbfa975438964eb.ctex"]
+source_file="res://assets/skills/witch_doctor/witch_life_drain.svg"
+dest_files=["res://.godot/imported/witch_life_drain.svg-35592142ff73ea6445a7bbacbdbb6be4.ctex"]
 
 [params]
 

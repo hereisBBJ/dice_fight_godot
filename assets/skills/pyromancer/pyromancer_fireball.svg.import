@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cycuaoyc82s3a"
-path="res://.godot/imported/pyromancer_flame_wind.svg-389c164a7f42aa5382b6bc9dd4f5554c.ctex"
+uid="uid://ccoiaa5tjy7rt"
+path="res://.godot/imported/pyromancer_fireball.svg-5b4ef350126d575349e4a403b7b0423a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/pyromancer_flame_wind.svg"
-dest_files=["res://.godot/imported/pyromancer_flame_wind.svg-389c164a7f42aa5382b6bc9dd4f5554c.ctex"]
+source_file="res://assets/skills/pyromancer/pyromancer_fireball.svg"
+dest_files=["res://.godot/imported/pyromancer_fireball.svg-5b4ef350126d575349e4a403b7b0423a.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://px8gfpce3k1o"
-path="res://.godot/imported/witch_doctor.svg-a7c527720c24361729fd2b76843c2fae.ctex"
+uid="uid://4xftonwlnlq7"
+path="res://.godot/imported/swordsman.svg-d8f77aa86510b2a829dfd478793efe7c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/witch_doctor.svg"
-dest_files=["res://.godot/imported/witch_doctor.svg-a7c527720c24361729fd2b76843c2fae.ctex"]
+source_file="res://assets/characters/swordsman/swordsman.svg"
+dest_files=["res://.godot/imported/swordsman.svg-d8f77aa86510b2a829dfd478793efe7c.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://byaafb13qkvy5"
-path="res://.godot/imported/pyromancer_flame_tide.svg-11e31db97e4ff46fc1cd9c8bd7738cc6.ctex"
+uid="uid://0tbbtanjjvhy"
+path="res://.godot/imported/archer_shot.svg-4a8c49a8019f28bb26021b51c7800528.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/pyromancer_flame_tide.svg"
-dest_files=["res://.godot/imported/pyromancer_flame_tide.svg-11e31db97e4ff46fc1cd9c8bd7738cc6.ctex"]
+source_file="res://assets/skills/archer/archer_shot.svg"
+dest_files=["res://.godot/imported/archer_shot.svg-4a8c49a8019f28bb26021b51c7800528.ctex"]
 
 [params]
 

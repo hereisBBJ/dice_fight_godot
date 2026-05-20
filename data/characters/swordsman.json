@@ -2,7 +2,7 @@
   "id": "swordsman",
   "name": "剑士",
   "theme_color": "#5b8def",
-  "portrait_path": "res://assets/characters/swordsman.svg",
+	"portrait_path": "res://assets/characters/swordsman/swordsman.svg",
   "initial_hp": 95,
   "max_hp": 95,
   "initial_mp": 50,
@@ -11,13 +11,13 @@
   "passive": {
 	"id": "sword_spirit",
 	"name": "剑意激荡",
-	"description": "进攻回合造成至少 20 点生命值伤害时，获得 10 护盾。"
+	"description": "进攻回合造成至少 20 点生命值伤害时，获得 5 护盾。"
   },
   "skills": [
 	{
 	  "id": "swordsman_slash",
 	  "name": "斩击",
-	  "icon_path": "res://assets/skills/swordsman_slash.svg",
+	  "icon_path": "res://assets/skills/swordsman/swordsman_slash.svg",
 	  "type": "attack",
 	  "cost": 0,
 	  "dice_requirements": ["1-3", "1-3"],
@@ -29,20 +29,20 @@
 	{
 	  "id": "swordsman_block",
 	  "name": "格挡",
-	  "icon_path": "res://assets/skills/swordsman_block.svg",
+	  "icon_path": "res://assets/skills/swordsman/swordsman_block.svg",
 	  "type": "defense",
 	  "cost": 0,
 	  "dice_requirements": ["1-3", "1-3"],
-	  "description": "获得 10 护盾，并获得 1 回合格挡：下次受到伤害时减伤 10。",
+	  "description": "获得 10 护盾，并在本技能结算后到回合结束前进入格挡：这段时间内每次受到普通伤害时减伤 5。若本回合作为后手结算，则不会减免先手已经造成的伤害。",
 	  "effects": [
 		{"type": "shield", "amount": 10, "skill_tag": "block"},
-		{"type": "add_status", "status_id": "guard", "duration": 1, "value": 10}
+		{"type": "add_status", "status_id": "guard", "duration": 1, "value": 5}
 	  ]
 	},
 	{
 	  "id": "swordsman_shield_bash",
 	  "name": "盾击",
-	  "icon_path": "res://assets/skills/swordsman_shield_bash.svg",
+	  "icon_path": "res://assets/skills/swordsman/swordsman_shield_bash.svg",
 	  "type": "attack",
 	  "cost": 20,
 	  "dice_requirements": [6, "1-3"],
@@ -54,7 +54,7 @@
 	{
 	  "id": "swordsman_finish",
 	  "name": "终结",
-	  "icon_path": "res://assets/skills/swordsman_finish.svg",
+	  "icon_path": "res://assets/skills/swordsman/swordsman_finish.svg",
 	  "type": "attack",
 	  "cost": 30,
 	  "dice_requirements": [6, 6],

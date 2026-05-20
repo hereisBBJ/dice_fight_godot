@@ -72,14 +72,14 @@
   {
     "id": "shield_breaker",
     "name": "破盾专家",
-    "description": "击破护盾时，额外造成 5 点生命伤害。",
+    "description": "击破护盾并触发扣血时，额外多扣 5 点生命。",
     "effect": "break_life_damage_bonus",
     "amount": 5
   },
   {
     "id": "initiative_pressure",
     "name": "先手压制",
-    "description": "作为进攻方时，每回合首次攻击技能伤害 +10。",
+    "description": "作为先手时，每回合首次攻击技能伤害 +10。",
     "effect": "first_attack_damage_bonus",
     "amount": 10
   }

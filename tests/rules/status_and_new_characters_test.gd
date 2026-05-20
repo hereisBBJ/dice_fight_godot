@@ -61,22 +61,22 @@ func _test_new_character_data_loads() -> void:
 
 func _test_poison_ticks_at_round_start() -> void:
 	var battle = _make_battle("witch_doctor", "swordsman")
-	battle.attacker_id = 0
+	battle.first_player_id = 0
 	battle.players[0].dice = [6, 5, 4, 1]
 	battle.players[1].dice = [1, 1, 1, 1]
 	var hp_before = int(battle.players[1].hp)
-	_expect(battle.submit_skip(1), "defender should skip")
+	_expect(battle.submit_skip(1), "second player should skip")
 	_expect(battle.submit_skill(0, "witch_poison_bottle"), "witch doctor should use poison bottle")
 	_expect(int(battle.players[1].hp) <= hp_before - 20, "poison bottle should deal hit damage and a poison tick by next round start")
 
 
 func _test_life_drain_heals_actual_life_damage() -> void:
 	var battle = _make_battle("witch_doctor", "swordsman")
-	battle.attacker_id = 0
+	battle.first_player_id = 0
 	battle.players[0].hp = 40
 	battle.players[0].dice = [5, 3, 2, 1]
 	battle.players[1].dice = [1, 1, 1, 1]
-	_expect(battle.submit_skip(1), "defender should skip before life drain")
+	_expect(battle.submit_skip(1), "second player should skip before life drain")
 	_expect(battle.submit_skill(0, "witch_life_drain"), "witch doctor should use life drain")
 	_expect(int(battle.players[0].hp) > 40, "life drain should heal when life damage is dealt")
 

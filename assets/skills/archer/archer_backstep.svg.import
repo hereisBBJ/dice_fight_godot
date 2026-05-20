@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dc2rgpvujhwkf"
-path="res://.godot/imported/witch_poison_bottle.svg-758402abb0cbdf5d3a770d747ea16f20.ctex"
+uid="uid://rb2yi75yp1oe"
+path="res://.godot/imported/archer_backstep.svg-adfd0113b905a7eb2c6b0eef2be25266.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/witch_poison_bottle.svg"
-dest_files=["res://.godot/imported/witch_poison_bottle.svg-758402abb0cbdf5d3a770d747ea16f20.ctex"]
+source_file="res://assets/skills/archer/archer_backstep.svg"
+dest_files=["res://.godot/imported/archer_backstep.svg-adfd0113b905a7eb2c6b0eef2be25266.ctex"]
 
 [params]
 

@@ -2,7 +2,7 @@
   "id": "witch_doctor",
   "name": "巫医",
   "theme_color": "#8c63d8",
-  "portrait_path": "res://assets/characters/witch_doctor.svg",
+  "portrait_path": "res://assets/characters/witch_doctor/witch_doctor.svg",
   "initial_hp": 90,
   "max_hp": 90,
   "initial_mp": 70,
@@ -17,7 +17,7 @@
     {
       "id": "witch_poison_bottle",
       "name": "剧毒药瓶",
-      "icon_path": "res://assets/skills/witch_poison_bottle.svg",
+      "icon_path": "res://assets/skills/witch_doctor/witch_poison_bottle.svg",
       "type": "attack",
       "cost": 0,
       "dice_requirements": ["5-6", "3-6"],
@@ -30,7 +30,7 @@
     {
       "id": "witch_life_drain",
       "name": "生命吸取",
-      "icon_path": "res://assets/skills/witch_life_drain.svg",
+      "icon_path": "res://assets/skills/witch_doctor/witch_life_drain.svg",
       "type": "attack",
       "cost": 15,
       "dice_requirements": ["odd", "odd"],

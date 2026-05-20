@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cwp0hodkhqned"
-path="res://.godot/imported/swordsman_shield_bash.svg-46249c75465c6a8eced9277d2a711ebc.ctex"
+path="res://.godot/imported/swordsman_shield_bash.svg-ebe8dc7e2d8afdbadc7f32765bd3f171.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/swordsman_shield_bash.svg"
-dest_files=["res://.godot/imported/swordsman_shield_bash.svg-46249c75465c6a8eced9277d2a711ebc.ctex"]
+source_file="res://assets/skills/swordsman/swordsman_shield_bash.svg"
+dest_files=["res://.godot/imported/swordsman_shield_bash.svg-ebe8dc7e2d8afdbadc7f32765bd3f171.ctex"]
 
 [params]
 

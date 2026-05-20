@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b1tw1fgwirhiy"
-path="res://.godot/imported/pyromancer_fire_shield.svg-a71505911795893af987d74a21514d5d.ctex"
+uid="uid://dsw7lfb7crbly"
+path="res://.godot/imported/archer_eagle_eye.svg-6c0fa3a02ec0fdd745ab08896917edbc.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/pyromancer_fire_shield.svg"
-dest_files=["res://.godot/imported/pyromancer_fire_shield.svg-a71505911795893af987d74a21514d5d.ctex"]
+source_file="res://assets/skills/archer/archer_eagle_eye.svg"
+dest_files=["res://.godot/imported/archer_eagle_eye.svg-6c0fa3a02ec0fdd745ab08896917edbc.ctex"]
 
 [params]
 

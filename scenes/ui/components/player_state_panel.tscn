@@ -39,7 +39,7 @@ theme_override_font_sizes/font_size = 22
 
 [node name="Role" type="Label" parent="Margin/Column/Header/Info"]
 layout_mode = 2
-text = "进攻方"
+text = "先手"
 theme_override_font_sizes/font_size = 15
 
 [node name="Feedback" type="Label" parent="Margin/Column/Header/Info"]

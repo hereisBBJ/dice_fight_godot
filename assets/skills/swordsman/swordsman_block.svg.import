@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cxp3rrcd1yibj"
-path="res://.godot/imported/pyromancer.svg-47eefe4062c44d6139ca3ed083fcd92b.ctex"
+uid="uid://bgja3qkqr6vg6"
+path="res://.godot/imported/swordsman_block.svg-5f73c371f4b4c3afe563a972593fa610.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/pyromancer.svg"
-dest_files=["res://.godot/imported/pyromancer.svg-47eefe4062c44d6139ca3ed083fcd92b.ctex"]
+source_file="res://assets/skills/swordsman/swordsman_block.svg"
+dest_files=["res://.godot/imported/swordsman_block.svg-5f73c371f4b4c3afe563a972593fa610.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dsw7lfb7crbly"
-path="res://.godot/imported/archer_eagle_eye.svg-9146c0260229cf1131fb001250c8074b.ctex"
+uid="uid://cpgcg6826tm7v"
+path="res://.godot/imported/swordsman_finish.svg-5fd18c73d49df0c7af782e9114983898.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/archer_eagle_eye.svg"
-dest_files=["res://.godot/imported/archer_eagle_eye.svg-9146c0260229cf1131fb001250c8074b.ctex"]
+source_file="res://assets/skills/swordsman/swordsman_finish.svg"
+dest_files=["res://.godot/imported/swordsman_finish.svg-5fd18c73d49df0c7af782e9114983898.ctex"]
 
 [params]
 

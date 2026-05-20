@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cvnlwtm8pmm2v"
-path="res://.godot/imported/witch_life_drain.svg-a7bf565ac947e9d7db9a24904a447cd0.ctex"
+uid="uid://byaafb13qkvy5"
+path="res://.godot/imported/pyromancer_flame_tide.svg-8cb208193a7795e0480f669dd1fb1809.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/witch_life_drain.svg"
-dest_files=["res://.godot/imported/witch_life_drain.svg-a7bf565ac947e9d7db9a24904a447cd0.ctex"]
+source_file="res://assets/skills/pyromancer/pyromancer_flame_tide.svg"
+dest_files=["res://.godot/imported/pyromancer_flame_tide.svg-8cb208193a7795e0480f669dd1fb1809.ctex"]
 
 [params]
 

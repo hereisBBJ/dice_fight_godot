@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b5py414jevjsu"
-path="res://.godot/imported/swordsman_slash.svg-18ad80994f3c0f3358b6a3d2a209fbda.ctex"
+path="res://.godot/imported/swordsman_slash.svg-1c96b0e18687eae1e0fa3549336362c3.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/skills/swordsman_slash.svg"
-dest_files=["res://.godot/imported/swordsman_slash.svg-18ad80994f3c0f3358b6a3d2a209fbda.ctex"]
+source_file="res://assets/skills/swordsman/swordsman_slash.svg"
+dest_files=["res://.godot/imported/swordsman_slash.svg-1c96b0e18687eae1e0fa3549336362c3.ctex"]
 
 [params]
 

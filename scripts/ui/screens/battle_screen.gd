@@ -41,10 +41,10 @@ func setup(new_battle, new_network_controller) -> void:
 	status_label.text = _network_text()
 	round_label.text = "第 %d 回合 | P%d %s，P%d %s" % [
 		battle.round_num,
-		battle.attacker_id + 1,
-		battle.role_text(battle.attacker_id),
-		(1 - battle.attacker_id) + 1,
-		battle.role_text(1 - battle.attacker_id)
+		battle.first_player_id + 1,
+		battle.role_text(battle.first_player_id),
+		(1 - battle.first_player_id) + 1,
+		battle.role_text(1 - battle.first_player_id)
 	]
 	enemy_title.text = "敌方状态（P%d）" % [enemy_id + 1]
 	self_title.text = "我方状态（P%d）" % [self_id + 1]
