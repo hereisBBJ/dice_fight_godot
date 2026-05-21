@@ -52,6 +52,12 @@
   - verify script parse errors and runtime errors.
 - If the MCP tool is not visible in a new session, restart Codex so it reloads the MCP config.
 
+## Codex Skills
+- A project-local skill for character animation asset production lives at `codex-skills/dice-fight-godot-animations/`.
+- Use it when creating or repairing Dice Fight character animation rows, transparent spritesheets, QA contact sheets, Godot `SpriteFrames` resources, or animation asset manifests.
+- The skill reuses the hatch-pet style pipeline: generate visual row strips with `$imagegen`, then use deterministic local scripts for recording selected rows, cutting frames, composing atlases, creating contact sheets, and writing Godot-ready resources.
+- For automatic discovery in future Codex sessions, copy or install the `dice-fight-godot-animations` skill folder into `C:\Users\BBJ\.codex\skills\` when filesystem approval is available.
+
 ## Validation
 - Run JSON parsing checks after editing data files.
 - Run the Godot project after GDScript changes when the MCP is available.

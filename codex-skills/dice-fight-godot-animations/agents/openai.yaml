@@ -1,0 +1,4 @@
+interface:
+  display_name: "Dice Fight Godot Animations"
+  short_description: "Create Godot-ready Dice Fight character animation assets."
+  default_prompt: "Use $dice-fight-godot-animations to create Godot-ready character animation spritesheets for Dice Fight."

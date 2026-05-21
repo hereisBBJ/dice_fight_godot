@@ -1,0 +1,34 @@
+{
+  "jobs": [
+    {
+      "id": "select_idle",
+      "status": "completed",
+      "animation": "select_idle",
+      "prompt_file": "E:\\Downloads\\dice_fight_godot\\tmp\\skill-animation-test\\prompts\\select_idle.txt",
+      "decoded_path": "E:\\Downloads\\dice_fight_godot\\tmp\\skill-animation-test\\decoded\\select_idle.png",
+      "input_images": [
+        {
+          "path": "E:\\Downloads\\dice_fight_godot\\tmp\\skill-animation-test\\references\\layout-guides\\select_idle.png",
+          "role": "layout guide only; do not copy visible marks"
+        }
+      ],
+      "source_path": "E:\\Downloads\\dice_fight_godot\\tmp\\skill-animation-source\\select_idle.png",
+      "recorded_at": "2026-05-21T09:46:44.280318+00:00"
+    },
+    {
+      "id": "hurt",
+      "status": "completed",
+      "animation": "hurt",
+      "prompt_file": "E:\\Downloads\\dice_fight_godot\\tmp\\skill-animation-test\\prompts\\hurt.txt",
+      "decoded_path": "E:\\Downloads\\dice_fight_godot\\tmp\\skill-animation-test\\decoded\\hurt.png",
+      "input_images": [
+        {
+          "path": "E:\\Downloads\\dice_fight_godot\\tmp\\skill-animation-test\\references\\layout-guides\\hurt.png",
+          "role": "layout guide only; do not copy visible marks"
+        }
+      ],
+      "source_path": "E:\\Downloads\\dice_fight_godot\\tmp\\skill-animation-source\\hurt.png",
+      "recorded_at": "2026-05-21T09:46:44.361625+00:00"
+    }
+  ]
+}

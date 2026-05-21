@@ -1,0 +1,19 @@
+{
+  "errors": [],
+  "warnings": [],
+  "coverage": {
+    "select_idle/00": 0.19921875,
+    "select_idle/01": 0.19921875,
+    "select_idle/02": 0.19921875,
+    "select_idle/03": 0.19921875,
+    "select_idle/04": 0.19921875,
+    "select_idle/05": 0.19921875,
+    "select_idle/06": 0.19921875,
+    "select_idle/07": 0.19921875,
+    "hurt/00": 0.19921875,
+    "hurt/01": 0.19921875,
+    "hurt/02": 0.19921875,
+    "hurt/03": 0.19921875
+  },
+  "final_atlas": "E:\\Downloads\\dice_fight_godot\\tmp\\skill-animation-test\\final\\skilltest_animations.png"
+}
