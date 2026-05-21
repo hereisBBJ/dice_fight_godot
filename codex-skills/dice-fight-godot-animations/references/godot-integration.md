@@ -40,6 +40,8 @@ animated_sprite.sprite_frames = load(sprite_frames_path)
 animated_sprite.play("battle_idle")
 ```
 
+For Control-based UI components that must work on a freshly cloned project before Godot has rebuilt `.godot/imported`, prefer loading `animation_manifest_path` first and building `AtlasTexture` frames from the source atlas with `Image.load()`. Keep `SpriteFrames` as an editor-friendly resource, but avoid making runtime UI depend on `.godot/imported/*.ctex` caches.
+
 Use `AnimationPlayer` for presentation sequences that combine playback with movement, flash, sound, particles, or screen shake:
 
 ```gdscript
