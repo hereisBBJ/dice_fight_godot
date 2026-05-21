@@ -7,6 +7,7 @@ import argparse
 import json
 import shutil
 from pathlib import Path
+from statistics import median
 from typing import Dict, List, Tuple
 
 from PIL import Image, ImageDraw
@@ -29,15 +30,37 @@ def res_path(project_path: Path, file_path: Path) -> str:
         return file_path.as_posix()
 
 
-def key_to_alpha(image: Image.Image, key: Tuple[int, int, int], threshold: int = 18) -> Image.Image:
+def estimate_border_key(image: Image.Image, fallback: Tuple[int, int, int]) -> Tuple[int, int, int]:
+    rgb = image.convert("RGB")
+    width, height = rgb.size
+    step = max(1, min(width, height) // 64)
+    samples = []
+    for x in range(0, width, step):
+        samples.append(rgb.getpixel((x, 0)))
+        samples.append(rgb.getpixel((x, height - 1)))
+    for y in range(0, height, step):
+        samples.append(rgb.getpixel((0, y)))
+        samples.append(rgb.getpixel((width - 1, y)))
+    if not samples:
+        return fallback
+    channels = list(zip(*samples))
+    sampled = tuple(int(median(channel)) for channel in channels)
+    if sampled[1] > 160 and sampled[1] - max(sampled[0], sampled[2]) > 80:
+        return sampled
+    return fallback
+
+
+def key_to_alpha(image: Image.Image, key: Tuple[int, int, int], threshold: int = 90) -> Image.Image:
     rgba = image.convert("RGBA")
+    sampled_key = estimate_border_key(rgba, key)
     pixels = rgba.load()
     width, height = rgba.size
     for y in range(height):
         for x in range(width):
             r, g, b, a = pixels[x, y]
-            dist = abs(r - key[0]) + abs(g - key[1]) + abs(b - key[2])
-            if dist <= threshold:
+            dist = abs(r - sampled_key[0]) + abs(g - sampled_key[1]) + abs(b - sampled_key[2])
+            green_dominant = g > 150 and g - max(r, b) > 70
+            if dist <= threshold and green_dominant:
                 pixels[x, y] = (r, g, b, 0)
     return rgba
 

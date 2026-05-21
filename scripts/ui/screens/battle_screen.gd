@@ -5,19 +5,31 @@ signal player_command(player_id: int, command: Dictionary)
 signal back_requested
 
 const SkillButtonScene = preload("res://scenes/ui/components/skill_button.tscn")
+const DiceViewScene = preload("res://scenes/ui/components/dice_view.tscn")
 const UIAssetsScript = preload("res://scripts/ui/components/ui_assets.gd")
 
-@onready var status_label: Label = $Margin/Column/Header/NetworkStatus
-@onready var back_button: Button = $Margin/Column/Header/BackButton
-@onready var round_label: Label = $Margin/Column/Round
-@onready var enemy_title: Label = $Margin/Column/GridScroll/GridMargin/BattleGrid/EnemyCell/EnemyTitle
-@onready var self_title: Label = $Margin/Column/GridScroll/GridMargin/BattleGrid/SelfCell/SelfTitle
-@onready var action_title: Label = $Margin/Column/GridScroll/GridMargin/BattleGrid/ActionCell/ActionTitle
-@onready var enemy_panel = $Margin/Column/GridScroll/GridMargin/BattleGrid/EnemyCell/EnemyPanel
-@onready var self_panel = $Margin/Column/GridScroll/GridMargin/BattleGrid/SelfCell/SelfPanel
-@onready var action_slot: VBoxContainer = $Margin/Column/GridScroll/GridMargin/BattleGrid/ActionCell/ActionSlot
-@onready var interactive_dialog = $Margin/Column/GridScroll/GridMargin/BattleGrid/ActionCell/InteractiveDialog
-@onready var log_view = $Margin/Column/GridScroll/GridMargin/BattleGrid/LogCell/LogView
+@onready var top_band: PanelContainer = $LayoutRoot/TopBand
+@onready var arena_band: PanelContainer = $LayoutRoot/ArenaBand
+@onready var bottom_band: PanelContainer = $LayoutRoot/BottomBand
+@onready var status_label: Label = $LayoutRoot/TopBand/TopMargin/StatusRow/TopHud/NetworkStatus
+@onready var back_button: Button = $LayoutRoot/TopBand/TopMargin/StatusRow/TopHud/BackButton
+@onready var round_label: Label = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/StageCenter/Round
+@onready var scene_label: Label = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/StageCenter/StageCenterFill/SceneLabel
+@onready var enemy_panel = $LayoutRoot/TopBand/TopMargin/StatusRow/EnemyPanel
+@onready var self_panel = $LayoutRoot/TopBand/TopMargin/StatusRow/SelfPanel
+@onready var self_character_slot: PanelContainer = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot
+@onready var self_character_portrait: TextureRect = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot/SelfCharacterMargin/SelfCharacterColumn/Portrait
+@onready var self_character_name: Label = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot/SelfCharacterMargin/SelfCharacterColumn/Name
+@onready var enemy_character_slot: PanelContainer = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot
+@onready var enemy_character_portrait: TextureRect = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot/EnemyCharacterMargin/EnemyCharacterColumn/Portrait
+@onready var enemy_character_name: Label = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot/EnemyCharacterMargin/EnemyCharacterColumn/Name
+@onready var dice_panel: PanelContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel
+@onready var dice_slot: VBoxContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn/DiceSlot
+@onready var action_cell: PanelContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell
+@onready var action_title: Label = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/ActionTitle
+@onready var action_slot: VBoxContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/ActionSlot
+@onready var interactive_dialog = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/InteractiveDialog
+@onready var log_view = $LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn/LogView
 
 var battle
 var network_controller
@@ -25,6 +37,7 @@ var _last_snapshot_text = ""
 
 
 func _ready() -> void:
+	_apply_placeholder_styles()
 	back_button.pressed.connect(func():
 		back_requested.emit()
 	)
@@ -46,11 +59,13 @@ func setup(new_battle, new_network_controller) -> void:
 		(1 - battle.first_player_id) + 1,
 		battle.role_text(1 - battle.first_player_id)
 	]
-	enemy_title.text = "敌方状态（P%d）" % [enemy_id + 1]
-	self_title.text = "我方状态（P%d）" % [self_id + 1]
+	scene_label.text = "场景"
 	action_title.text = "我方技能选择" if network_controller.mode != network_controller.MODE_LOCAL else "本机行动选择"
 	enemy_panel.set_player(enemy_id, battle, animate, _should_hide_enemy_private_info(enemy_id))
 	self_panel.set_player(self_id, battle, animate, false)
+	_render_stage_character(self_character_slot, self_character_portrait, self_character_name, self_id, "我方")
+	_render_stage_character(enemy_character_slot, enemy_character_portrait, enemy_character_name, enemy_id, "敌方")
+	_render_dice_area(self_id, animate)
 	interactive_dialog.setup(battle, network_controller)
 	if not interactive_dialog.interactive_command.is_connected(_on_interactive_command):
 		interactive_dialog.interactive_command.connect(_on_interactive_command)
@@ -58,6 +73,14 @@ func setup(new_battle, new_network_controller) -> void:
 	if action_slot.visible:
 		_render_actions(self_id)
 	log_view.set_logs(_visible_logs_for_local_player())
+
+
+func _apply_placeholder_styles() -> void:
+	top_band.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.93, 0.42, 0.14), Color(0.12, 0.10, 0.08), 0))
+	arena_band.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.23, 0.43, 0.72), Color(0.08, 0.15, 0.26), 0))
+	bottom_band.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.93, 0.42, 0.14), Color(0.12, 0.10, 0.08), 0))
+	dice_panel.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.58, 0.58, 0.56), Color(0.18, 0.18, 0.18), 0))
+	action_cell.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.93, 0.42, 0.14, 0.0), Color(0.12, 0.10, 0.08, 0.0), 0))
 
 
 func _self_player_id() -> int:
@@ -88,9 +111,10 @@ func _render_actions(self_id: int) -> void:
 func _render_action_panel(player_id: int, parent: Container) -> void:
 	var player: Dictionary = battle.players[player_id]
 	var panel = PanelContainer.new()
+	panel.custom_minimum_size = Vector2(260, 0)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.09, 0.10, 0.12, 0.92)))
+	panel.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.10, 0.09, 0.07, 0.78), Color(0.97, 0.70, 0.10, 0.72), 8))
 	parent.add_child(panel)
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 10)
@@ -103,7 +127,7 @@ func _render_action_panel(player_id: int, parent: Container) -> void:
 	margin.add_child(column)
 	var title = Label.new()
 	title.text = "P%d 行动 | %s" % [player_id + 1, battle.role_text(player_id)]
-	title.add_theme_font_size_override("font_size", 18)
+	title.add_theme_font_size_override("font_size", 16)
 	column.add_child(title)
 	if not network_controller.can_control_player(player_id):
 		_add_hint(column, "联网模式下等待对方操作。")
@@ -116,12 +140,66 @@ func _render_action_panel(player_id: int, parent: Container) -> void:
 	skill_label.text = "可用技能"
 	column.add_child(skill_label)
 	var skill_grid = GridContainer.new()
-	skill_grid.columns = 1
+	skill_grid.columns = 2 if network_controller.mode == network_controller.MODE_LOCAL else 4
+	skill_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	skill_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	skill_grid.add_theme_constant_override("h_separation", 8)
 	skill_grid.add_theme_constant_override("v_separation", 8)
 	column.add_child(skill_grid)
 	for skill in battle.get_allowed_skills(player_id):
 		_add_skill_buttons(skill_grid, player_id, skill)
+
+
+func _render_stage_character(slot: PanelContainer, portrait: TextureRect, label: Label, player_id: int, prefix: String) -> void:
+	var player: Dictionary = battle.players[player_id]
+	var character: Dictionary = player.get("character", {})
+	var theme_color = UIAssetsScript.color_from_hex(String(character.get("theme_color", "")), Color(0.18, 0.19, 0.22))
+	slot.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.02, 0.02, 0.025), theme_color.darkened(0.2), 2))
+	if portrait.has_method("set_character_animation"):
+		portrait.set_character_animation(character, theme_color, Vector2i(192, 192), "battle_idle")
+	else:
+		portrait.texture = UIAssetsScript.texture_from_path(String(character.get("portrait_path", "")), theme_color, Vector2i(192, 192))
+	var character_name = "未选择" if character.is_empty() else String(character.get("name", ""))
+	label.text = "%s P%d\n%s" % [prefix, player_id + 1, character_name]
+
+
+func _render_dice_area(self_id: int, animate: bool) -> void:
+	for child in dice_slot.get_children():
+		child.queue_free()
+	if network_controller.mode == network_controller.MODE_LOCAL:
+		_add_dice_row(0, animate)
+		_add_dice_row(1, animate)
+	else:
+		_add_dice_row(self_id, animate)
+
+
+func _add_dice_row(player_id: int, animate: bool) -> void:
+	var player: Dictionary = battle.players[player_id]
+	var row_panel = PanelContainer.new()
+	row_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row_panel.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.72, 0.72, 0.70, 0.75), Color(0.30, 0.30, 0.30), 4))
+	dice_slot.add_child(row_panel)
+	var margin = MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	row_panel.add_child(margin)
+	var row = HBoxContainer.new()
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_theme_constant_override("separation", 8)
+	margin.add_child(row)
+	var label = Label.new()
+	label.custom_minimum_size = Vector2(56, 0)
+	label.text = "P%d" % [player_id + 1]
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 18)
+	row.add_child(label)
+	var dice_view = DiceViewScene.instantiate()
+	dice_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(dice_view)
+	dice_view.set_dice(player.get("dice", []), animate)
 
 
 func _render_tools(column: VBoxContainer, player_id: int) -> void:
@@ -179,6 +257,8 @@ func _add_skill_button(parent: GridContainer, player_id: int, skill: Dictionary,
 	var button = SkillButtonScene.instantiate()
 	var reason = battle.get_skill_block_reason(player_id, skill, modes)
 	button.configure(skill, modes, battle.get_skill_cost(player_id, skill, modes), reason, theme_color)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var selected_skill_id = String(skill.get("id", ""))
 	var selected_modes = modes.duplicate()
 	button.pressed.connect(func():

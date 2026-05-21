@@ -3,6 +3,8 @@
   "name": "弓箭手",
   "theme_color": "#54b779",
 	"portrait_path": "res://assets/characters/archer/archer.svg",
+	"animation_sprite_frames_path": "res://assets/characters/archer/animations/archer_sprite_frames.tres",
+	"animation_manifest_path": "res://assets/characters/archer/animations/archer_animation_manifest.json",
   "initial_hp": 80,
   "max_hp": 80,
   "initial_mp": 30,

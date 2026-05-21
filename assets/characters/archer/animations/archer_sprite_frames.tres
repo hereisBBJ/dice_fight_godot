@@ -1,0 +1,32 @@
+[gd_resource type="SpriteFrames" load_steps=8 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/characters/archer/animations/archer_animations.png" id="1_atlas"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_battle_idle_00"]
+atlas = ExtResource("1_atlas")
+region = Rect2(0, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_battle_idle_01"]
+atlas = ExtResource("1_atlas")
+region = Rect2(128, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_battle_idle_02"]
+atlas = ExtResource("1_atlas")
+region = Rect2(256, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_battle_idle_03"]
+atlas = ExtResource("1_atlas")
+region = Rect2(384, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_battle_idle_04"]
+atlas = ExtResource("1_atlas")
+region = Rect2(512, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_battle_idle_05"]
+atlas = ExtResource("1_atlas")
+region = Rect2(640, 0, 128, 128)
+
+[resource]
+animations = [
+{"frames": [{"duration": 1.0, "texture": SubResource("AtlasTexture_battle_idle_00")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_battle_idle_01")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_battle_idle_02")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_battle_idle_03")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_battle_idle_04")}, {"duration": 1.0, "texture": SubResource("AtlasTexture_battle_idle_05")}], "loop": true, "name": &"battle_idle", "speed": 6.000}
+]

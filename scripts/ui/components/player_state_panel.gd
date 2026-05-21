@@ -5,6 +5,9 @@ const DiceViewScene = preload("res://scenes/ui/components/dice_view.tscn")
 const StatusIconScene = preload("res://scenes/ui/components/status_icon.tscn")
 const UIAssetsScript = preload("res://scripts/ui/components/ui_assets.gd")
 
+@export var compact = false
+@export var show_dice = true
+
 @onready var portrait: TextureRect = $Margin/Column/Header/Portrait
 @onready var name_label: Label = $Margin/Column/Header/Info/Name
 @onready var role_label: Label = $Margin/Column/Header/Info/Role
@@ -16,6 +19,10 @@ const UIAssetsScript = preload("res://scripts/ui/components/ui_assets.gd")
 @onready var augment_label: Label = $Margin/Column/Augments
 @onready var action_label: Label = $Margin/Column/Action
 @onready var feedback_label: Label = $Margin/Column/Header/Info/Feedback
+@onready var margin: MarginContainer = $Margin
+@onready var column: VBoxContainer = $Margin/Column
+@onready var header: HBoxContainer = $Margin/Column/Header
+@onready var stats: VBoxContainer = $Margin/Column/Stats
 
 var _dice_view: DiceView
 var _last_hp = 0
@@ -25,6 +32,7 @@ var _has_previous = false
 
 
 func _ready() -> void:
+	_apply_layout_mode()
 	_dice_view = DiceViewScene.instantiate()
 	dice_slot.add_child(_dice_view)
 
@@ -40,12 +48,13 @@ func set_player(player_id: int, battle, animate: bool = false, hide_private_info
 	_set_bar(hp_bar, "HP", int(player.get("hp", 0)), int(player.get("max_hp", 1)), Color(0.86, 0.20, 0.22))
 	_set_bar(mp_bar, "MP", int(player.get("mp", 0)), int(player.get("max_mp", 1)), Color(0.25, 0.48, 0.92))
 	_set_bar(shield_bar, "护盾", int(player.get("shield", 0)), int(player.get("max_shield", 1)), Color(0.35, 0.68, 0.90))
-	if hide_private_info:
-		_dice_view.set_dice([], false)
-		dice_slot.tooltip_text = "联机对战中隐藏敌方骰子。"
-	else:
-		_dice_view.set_dice(player.get("dice", []), animate)
-		dice_slot.tooltip_text = ""
+	if show_dice:
+		if hide_private_info:
+			_dice_view.set_dice([], false)
+			dice_slot.tooltip_text = "联机对战中隐藏敌方骰子。"
+		else:
+			_dice_view.set_dice(player.get("dice", []), animate)
+			dice_slot.tooltip_text = ""
 	_render_statuses(player, battle.status_effects)
 	augment_label.text = "强化：%s" % battle.augment_text(player_id)
 	if hide_private_info:
@@ -59,6 +68,29 @@ func set_player(player_id: int, battle, animate: bool = false, hide_private_info
 	_last_mp = int(player.get("mp", 0))
 	_last_shield = int(player.get("shield", 0))
 	_has_previous = true
+
+
+func _apply_layout_mode() -> void:
+	dice_slot.visible = show_dice
+	if not compact:
+		return
+	custom_minimum_size = Vector2(360, 118)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	column.add_theme_constant_override("separation", 4)
+	header.add_theme_constant_override("separation", 8)
+	stats.add_theme_constant_override("separation", 3)
+	portrait.custom_minimum_size = Vector2(70, 70)
+	name_label.add_theme_font_size_override("font_size", 18)
+	role_label.add_theme_font_size_override("font_size", 12)
+	feedback_label.add_theme_font_size_override("font_size", 14)
+	hp_bar.custom_minimum_size = Vector2(0, 18)
+	mp_bar.custom_minimum_size = Vector2(0, 18)
+	shield_bar.custom_minimum_size = Vector2(0, 18)
+	augment_label.add_theme_font_size_override("font_size", 11)
+	action_label.add_theme_font_size_override("font_size", 12)
 
 
 func _set_bar(bar: ProgressBar, label: String, value: int, maximum: int, color: Color) -> void:

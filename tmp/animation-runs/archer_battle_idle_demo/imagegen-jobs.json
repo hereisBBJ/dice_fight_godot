@@ -1,0 +1,19 @@
+{
+  "jobs": [
+    {
+      "id": "battle_idle",
+      "status": "completed",
+      "animation": "battle_idle",
+      "prompt_file": "E:\\Downloads\\dice_fight_godot\\tmp\\animation-runs\\archer_battle_idle_demo\\prompts\\battle_idle.txt",
+      "decoded_path": "E:\\Downloads\\dice_fight_godot\\tmp\\animation-runs\\archer_battle_idle_demo\\decoded\\battle_idle.png",
+      "input_images": [
+        {
+          "path": "E:\\Downloads\\dice_fight_godot\\tmp\\animation-runs\\archer_battle_idle_demo\\references\\layout-guides\\battle_idle.png",
+          "role": "layout guide only; do not copy visible marks"
+        }
+      ],
+      "source_path": "C:\\Users\\BBJ\\.codex\\generated_images\\019e4644-b4fe-7fa1-90b7-c8b0ade878cd\\ig_0d0ee993fc201f61016a0ef787a410819193705b7d731e5208.png",
+      "recorded_at": "2026-05-21T12:17:08.578206+00:00"
+    }
+  ]
+}
