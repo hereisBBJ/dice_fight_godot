@@ -34,6 +34,7 @@ const UIAssetsScript = preload("res://scripts/ui/components/ui_assets.gd")
 var battle
 var network_controller
 var _last_snapshot_text = ""
+var _last_presentation_event_count = 0
 
 
 func _ready() -> void:
@@ -47,6 +48,7 @@ func setup(new_battle, new_network_controller) -> void:
 	battle = new_battle
 	network_controller = new_network_controller
 	var snapshot_text = JSON.stringify(battle.to_snapshot())
+	var first_render = _last_snapshot_text.is_empty()
 	var animate = snapshot_text != _last_snapshot_text and not _last_snapshot_text.is_empty()
 	_last_snapshot_text = snapshot_text
 	var self_id = _self_player_id()
@@ -63,8 +65,8 @@ func setup(new_battle, new_network_controller) -> void:
 	action_title.text = "我方技能选择" if network_controller.mode != network_controller.MODE_LOCAL else "本机行动选择"
 	enemy_panel.set_player(enemy_id, battle, animate, _should_hide_enemy_private_info(enemy_id))
 	self_panel.set_player(self_id, battle, animate, false)
-	_render_stage_character(self_character_slot, self_character_portrait, self_character_name, self_id, "我方")
-	_render_stage_character(enemy_character_slot, enemy_character_portrait, enemy_character_name, enemy_id, "敌方")
+	_render_stage_character(self_character_slot, self_character_portrait, self_character_name, self_id, "我方", false)
+	_render_stage_character(enemy_character_slot, enemy_character_portrait, enemy_character_name, enemy_id, "敌方", true)
 	_render_dice_area(self_id, animate)
 	interactive_dialog.setup(battle, network_controller)
 	if not interactive_dialog.interactive_command.is_connected(_on_interactive_command):
@@ -73,6 +75,10 @@ func setup(new_battle, new_network_controller) -> void:
 	if action_slot.visible:
 		_render_actions(self_id)
 	log_view.set_logs(_visible_logs_for_local_player())
+	if first_render:
+		_last_presentation_event_count = battle.presentation_events.size()
+	else:
+		_play_new_presentation_events(self_id, enemy_id)
 
 
 func _apply_placeholder_styles() -> void:
@@ -150,17 +156,41 @@ func _render_action_panel(player_id: int, parent: Container) -> void:
 		_add_skill_buttons(skill_grid, player_id, skill)
 
 
-func _render_stage_character(slot: PanelContainer, portrait: TextureRect, label: Label, player_id: int, prefix: String) -> void:
+func _render_stage_character(slot: PanelContainer, portrait: TextureRect, label: Label, player_id: int, prefix: String, flip_h: bool) -> void:
 	var player: Dictionary = battle.players[player_id]
 	var character: Dictionary = player.get("character", {})
 	var theme_color = UIAssetsScript.color_from_hex(String(character.get("theme_color", "")), Color(0.18, 0.19, 0.22))
 	slot.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.02, 0.02, 0.025), theme_color.darkened(0.2), 2))
+	portrait.flip_h = flip_h
 	if portrait.has_method("set_character_animation"):
 		portrait.set_character_animation(character, theme_color, Vector2i(192, 192), "battle_idle")
 	else:
 		portrait.texture = UIAssetsScript.texture_from_path(String(character.get("portrait_path", "")), theme_color, Vector2i(192, 192))
 	var character_name = "未选择" if character.is_empty() else String(character.get("name", ""))
 	label.text = "%s P%d\n%s" % [prefix, player_id + 1, character_name]
+
+
+func _play_new_presentation_events(self_id: int, enemy_id: int) -> void:
+	var events: Array = battle.presentation_events
+	if _last_presentation_event_count > events.size():
+		_last_presentation_event_count = events.size()
+	for index in range(_last_presentation_event_count, events.size()):
+		var event: Dictionary = events[index]
+		if String(event.get("skill_type", "")) != "attack":
+			continue
+		var actor_id = int(event.get("player_id", -1))
+		var portrait = _portrait_for_player(actor_id, self_id, enemy_id)
+		if portrait != null and portrait.has_method("play_character_animation"):
+			portrait.play_character_animation("attack", "battle_idle")
+	_last_presentation_event_count = events.size()
+
+
+func _portrait_for_player(player_id: int, self_id: int, enemy_id: int):
+	if player_id == self_id:
+		return self_character_portrait
+	if player_id == enemy_id:
+		return enemy_character_portrait
+	return null
 
 
 func _render_dice_area(self_id: int, animate: bool) -> void:

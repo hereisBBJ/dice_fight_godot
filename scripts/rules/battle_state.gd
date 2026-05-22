@@ -29,6 +29,7 @@ var logs: Array = []
 var pending_actions: Array = [{}, {}]
 var augment_candidates: Array = [{}, {}]
 var pending_interactive_request: Dictionary = {}
+var presentation_events: Array = []
 
 var rng = RandomNumberGenerator.new()
 
@@ -55,6 +56,7 @@ func reset_to_character_select() -> void:
 	pending_actions = [{}, {}]
 	augment_candidates = [{}, {}]
 	pending_interactive_request = {}
+	presentation_events = []
 	_interactive_context = {}
 	logs = ["请选择 P1 和 P2 的角色。"]
 
@@ -372,6 +374,7 @@ func _execute_action(actor_id: int) -> bool:
 	players[actor_id].per_turn_flags.used_skill = true
 	if _skill_is_attack(skill):
 		players[actor_id].per_turn_flags.used_attack_skill = true
+		_record_presentation_event(actor_id, skill)
 	_log("P%d 结算 %s，消耗 %d MP。" % [actor_id + 1, skill.name, cost])
 	for effect in skill.effects:
 		if not _resolve_effect(actor_id, skill, effect, modes):
@@ -849,7 +852,8 @@ func to_snapshot() -> Dictionary:
 		"logs": logs.duplicate(true),
 		"pending_actions": pending_actions.duplicate(true),
 		"augment_candidates": augment_candidates.duplicate(true),
-		"pending_interactive_request": pending_interactive_request.duplicate(true)
+		"pending_interactive_request": pending_interactive_request.duplicate(true),
+		"presentation_events": presentation_events.duplicate(true)
 	}
 
 
@@ -863,10 +867,19 @@ func apply_snapshot(snapshot: Dictionary) -> void:
 	pending_actions = snapshot.get("pending_actions", [{}, {}]).duplicate(true)
 	augment_candidates = snapshot.get("augment_candidates", [{}, {}]).duplicate(true)
 	pending_interactive_request = snapshot.get("pending_interactive_request", {}).duplicate(true)
+	presentation_events = snapshot.get("presentation_events", []).duplicate(true)
 
 
 func append_log(message: String) -> void:
 	_log(message)
+
+
+func _record_presentation_event(player_id: int, skill: Dictionary) -> void:
+	presentation_events.append({
+		"player_id": player_id,
+		"skill_id": String(skill.get("id", "")),
+		"skill_type": String(skill.get("type", ""))
+	})
 
 
 func _find_augment_for_player(player_id: int, augment_id: String) -> Dictionary:

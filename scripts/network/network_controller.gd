@@ -15,6 +15,7 @@ var status_message = "单机热座"
 var battle
 
 var _peer_to_player: Dictionary = {}
+var _standalone_peer: ENetMultiplayerPeer
 
 
 func bind_battle_state(new_battle) -> void:
@@ -41,7 +42,11 @@ func host(new_battle, port: int = DEFAULT_PORT) -> bool:
 		status_message = "创建房间失败：%s" % error_string(error)
 		status_changed.emit()
 		return false
-	multiplayer.multiplayer_peer = peer
+	var multiplayer_api = _get_multiplayer_api()
+	if multiplayer_api == null:
+		_standalone_peer = peer
+	else:
+		multiplayer_api.multiplayer_peer = peer
 	mode = MODE_HOST
 	local_player_id = 0
 	_peer_to_player = {1: 0}
@@ -61,7 +66,11 @@ func join(new_battle, address: String, port: int = DEFAULT_PORT) -> bool:
 		status_message = "加入房间失败：%s" % error_string(error)
 		status_changed.emit()
 		return false
-	multiplayer.multiplayer_peer = peer
+	var multiplayer_api = _get_multiplayer_api()
+	if multiplayer_api == null:
+		_standalone_peer = peer
+	else:
+		multiplayer_api.multiplayer_peer = peer
 	mode = MODE_CLIENT
 	local_player_id = -1
 	_connect_multiplayer_signals()
@@ -163,23 +172,41 @@ func _interactive_belongs_to(player_id: int) -> bool:
 
 
 func _connect_multiplayer_signals() -> void:
-	if not multiplayer.peer_connected.is_connected(_on_peer_connected):
-		multiplayer.peer_connected.connect(_on_peer_connected)
-	if not multiplayer.peer_disconnected.is_connected(_on_peer_disconnected):
-		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-	if not multiplayer.connected_to_server.is_connected(_on_connected_to_server):
-		multiplayer.connected_to_server.connect(_on_connected_to_server)
-	if not multiplayer.connection_failed.is_connected(_on_connection_failed):
-		multiplayer.connection_failed.connect(_on_connection_failed)
-	if not multiplayer.server_disconnected.is_connected(_on_server_disconnected):
-		multiplayer.server_disconnected.connect(_on_server_disconnected)
+	var multiplayer_api = _get_multiplayer_api()
+	if multiplayer_api == null:
+		return
+	if not multiplayer_api.peer_connected.is_connected(_on_peer_connected):
+		multiplayer_api.peer_connected.connect(_on_peer_connected)
+	if not multiplayer_api.peer_disconnected.is_connected(_on_peer_disconnected):
+		multiplayer_api.peer_disconnected.connect(_on_peer_disconnected)
+	if not multiplayer_api.connected_to_server.is_connected(_on_connected_to_server):
+		multiplayer_api.connected_to_server.connect(_on_connected_to_server)
+	if not multiplayer_api.connection_failed.is_connected(_on_connection_failed):
+		multiplayer_api.connection_failed.connect(_on_connection_failed)
+	if not multiplayer_api.server_disconnected.is_connected(_on_server_disconnected):
+		multiplayer_api.server_disconnected.connect(_on_server_disconnected)
 
 
 func _close_peer() -> void:
-	if multiplayer.multiplayer_peer != null:
-		multiplayer.multiplayer_peer.close()
-		multiplayer.multiplayer_peer = null
+	var multiplayer_api = _get_multiplayer_api()
+	if multiplayer_api != null and multiplayer_api.multiplayer_peer != null:
+		multiplayer_api.multiplayer_peer.close()
+		multiplayer_api.multiplayer_peer = null
+	if _standalone_peer != null:
+		_standalone_peer.close()
+		_standalone_peer = null
 	_peer_to_player = {}
+
+
+func _get_multiplayer_api():
+	if multiplayer != null:
+		return multiplayer
+	if not is_inside_tree():
+		return null
+	var tree = get_tree()
+	if tree == null:
+		return null
+	return tree.get_multiplayer()
 
 
 func _on_peer_connected(peer_id: int) -> void:
@@ -188,7 +215,9 @@ func _on_peer_connected(peer_id: int) -> void:
 	if _peer_to_player.has(peer_id):
 		return
 	if _peer_to_player.size() >= 2:
-		multiplayer.multiplayer_peer.disconnect_peer(peer_id)
+		var multiplayer_api = _get_multiplayer_api()
+		if multiplayer_api != null and multiplayer_api.multiplayer_peer != null:
+			multiplayer_api.multiplayer_peer.disconnect_peer(peer_id)
 		return
 	_peer_to_player[peer_id] = 1
 	status_message = "P2 已加入。主机为 P1，客户端为 P2。"
@@ -280,9 +309,10 @@ func _is_private_log_for_player(text: String, player_id: int) -> bool:
 
 @rpc("any_peer", "reliable")
 func server_submit_command(command: Dictionary) -> void:
-	if mode != MODE_HOST or not multiplayer.is_server():
+	var multiplayer_api = _get_multiplayer_api()
+	if mode != MODE_HOST or multiplayer_api == null or not multiplayer_api.is_server():
 		return
-	var sender = multiplayer.get_remote_sender_id()
+	var sender = multiplayer_api.get_remote_sender_id()
 	var player_id = int(_peer_to_player.get(sender, -1))
 	if player_id < 0:
 		return
