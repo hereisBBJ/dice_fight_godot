@@ -140,12 +140,12 @@ func _test_arcanist_drain_recovers_mp_from_hp_damage() -> void:
 	var battle = _make_battle("arcanist", "swordsman")
 	battle.first_player_id = 0
 	battle.players[0].mp = 20
-	battle.players[1].shield = 0
+	battle.players[1].shield = 26
 	battle.players[0].dice = [6, 5, 1, 1]
 	battle.players[1].dice = [1, 1, 1, 1]
 	_expect(battle.submit_skip(1), "second player should skip before drain")
 	_expect(battle.submit_skill(0, "arcanist_drain"), "arcanist should cast drain")
-	_expect(int(battle.players[0].mp) == 30, "drain should restore MP equal to actual life damage dealt")
+	_expect(int(battle.players[0].mp) == 10, "drain should restore 10 MP when actual life damage reaches 12")
 
 
 func _test_arcanist_storm_spends_all_mp_for_damage() -> void:

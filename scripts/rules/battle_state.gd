@@ -438,8 +438,9 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 			var amount = _modified_damage(actor_id, skill, int(effect.amount))
 			var result = _apply_damage(actor_id, target_id, amount, 10, String(skill.id))
 			var hp_damage = int(result.get("hp_damage", 0))
-			var mp_per_hp_damage = int(effect.get("mp_per_hp_damage", 1))
-			var mp_gain = hp_damage * mp_per_hp_damage
+			var hp_step = max(1, int(effect.get("hp_step", 10)))
+			var mp_step_gain = max(0, int(effect.get("mp_step_gain", 10)))
+			var mp_gain = int(floor(float(hp_damage) / float(hp_step))) * mp_step_gain
 			if mp_gain > 0 and players[actor_id].hp > 0:
 				var before = int(players[actor_id].mp)
 				players[actor_id].mp = min(players[actor_id].max_mp, players[actor_id].mp + mp_gain)

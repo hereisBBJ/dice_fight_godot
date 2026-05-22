@@ -50,7 +50,7 @@
       "dice_requirements": [6, "4-6"],
       "description": "造成 30 伤害，并按实际生命伤害回复 MP；每造成 10 点生命伤害，回复 10 MP。",
       "effects": [
-        {"type": "mana_drain_damage", "amount": 30, "mp_per_hp_damage": 1}
+        {"type": "mana_drain_damage", "amount": 30, "hp_step": 10, "mp_step_gain": 10}
       ]
     },
     {
