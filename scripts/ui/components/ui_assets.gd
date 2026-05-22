@@ -1,4 +1,4 @@
-extends RefCounted
+ extends RefCounted
 class_name UIAssets
 
 
@@ -15,7 +15,23 @@ static func texture_from_path(path: String, fallback_color: Color, size: Vector2
 		var loaded = load(path)
 		if loaded is Texture2D:
 			return loaded
+		var svg_texture = _texture_from_svg(path)
+		if svg_texture != null:
+			return svg_texture
 	return make_color_texture(fallback_color, size)
+
+
+static func _texture_from_svg(path: String) -> Texture2D:
+	if not path.to_lower().ends_with(".svg"):
+		return null
+	var raw = FileAccess.get_file_as_string(path)
+	if raw.is_empty():
+		return null
+	var image = Image.new()
+	var error = image.load_svg_from_string(raw)
+	if error != OK:
+		return null
+	return ImageTexture.create_from_image(image)
 
 
 static func make_color_texture(color: Color, size: Vector2i = Vector2i(128, 128)) -> Texture2D:

@@ -225,7 +225,10 @@ func _begin_round(carry_last_turn: bool) -> void:
 			"used_skill": false,
 			"used_attack_skill": false,
 			"first_attack_bonus_used": false,
-			"end_mp_refund": 0
+			"end_mp_refund": 0,
+			"last_skill_precast_mp": 0,
+			"last_skill_spent_mp": 0,
+			"last_skill_id": ""
 		}
 		player.dice = DiceRulesScript.roll_dice(rng, 4)
 		players[player_id] = player
@@ -370,8 +373,12 @@ func _execute_action(actor_id: int) -> bool:
 	if players[actor_id].mp < cost:
 		_log("P%d 的 %s 结算失败：MP 不足。" % [actor_id + 1, skill.name])
 		return true
+	var precast_mp = int(players[actor_id].mp)
 	players[actor_id].mp -= cost
 	players[actor_id].per_turn_flags.used_skill = true
+	players[actor_id].per_turn_flags.last_skill_precast_mp = precast_mp
+	players[actor_id].per_turn_flags.last_skill_spent_mp = cost
+	players[actor_id].per_turn_flags.last_skill_id = String(skill.id)
 	if _skill_is_attack(skill):
 		players[actor_id].per_turn_flags.used_attack_skill = true
 		_record_presentation_event(actor_id, skill)
@@ -396,17 +403,26 @@ func _resolve_skip(player_id: int) -> void:
 	var before = int(players[player_id].mp)
 	players[player_id].mp = min(players[player_id].max_mp, players[player_id].mp + gained)
 	_log("P%d 跳过回合，回复 %d MP（%d -> %d）。" % [player_id + 1, players[player_id].mp - before, before, players[player_id].mp])
+	_trigger_passive_on_skip_recover(player_id)
 
 
 func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes: Array) -> bool:
 	var target_id = 1 - actor_id
 	match String(effect.type):
 		"damage":
-			var amount = _modified_damage(actor_id, skill, int(effect.amount))
+			var amount = _modified_damage(actor_id, skill, _effect_amount(effect, modes, int(effect.amount)))
 			_apply_damage(actor_id, target_id, amount, 10, String(skill.id))
 		"shield":
 			var amount = _modified_shield_gain(actor_id, skill, int(effect.amount))
 			_gain_shield(actor_id, amount)
+		"shield_by_precast_mp":
+			var precast_mp = int(players[actor_id].per_turn_flags.get("last_skill_precast_mp", players[actor_id].mp))
+			var threshold = int(effect.get("threshold", 0))
+			var base_amount = int(effect.get("low_amount", 0))
+			if precast_mp >= threshold:
+				base_amount = int(effect.get("high_amount", base_amount))
+			var shield_amount = _modified_shield_gain(actor_id, skill, base_amount)
+			_gain_shield(actor_id, shield_amount)
 		"add_status":
 			var status_target = target_id if String(effect.get("target", "self")) == "enemy" else actor_id
 			_add_status(status_target, String(effect.status_id), int(effect.get("duration", 1)), int(effect.get("value", 0)), actor_id)
@@ -418,6 +434,18 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 				_heal(actor_id, healed)
 			else:
 				_log("P%d 没有造成生命伤害，生命吸取不回复。" % [actor_id + 1])
+		"mana_drain_damage":
+			var amount = _modified_damage(actor_id, skill, int(effect.amount))
+			var result = _apply_damage(actor_id, target_id, amount, 10, String(skill.id))
+			var hp_damage = int(result.get("hp_damage", 0))
+			var mp_per_hp_damage = int(effect.get("mp_per_hp_damage", 1))
+			var mp_gain = hp_damage * mp_per_hp_damage
+			if mp_gain > 0 and players[actor_id].hp > 0:
+				var before = int(players[actor_id].mp)
+				players[actor_id].mp = min(players[actor_id].max_mp, players[actor_id].mp + mp_gain)
+				_log("P%d 通过汲取回复 %d MP（%d -> %d）。" % [actor_id + 1, players[actor_id].mp - before, before, players[actor_id].mp])
+			else:
+				_log("P%d 没有造成生命伤害，汲取不回复 MP。" % [actor_id + 1])
 		"add_burn":
 			_add_burn(actor_id, target_id, int(effect.get("layers", 1)))
 		"flame_tide":
@@ -439,6 +467,16 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 			_apply_damage(actor_id, target_id, amount, 10, String(skill.id))
 		"damage_by_last_taken":
 			var amount = _modified_damage(actor_id, skill, int(effect.base) + int(players[actor_id].damage_taken_last_turn))
+			_apply_damage(actor_id, target_id, amount, 10, String(skill.id))
+		"damage_by_spent_all_mp":
+			var spent_mp = int(players[actor_id].mp)
+			players[actor_id].mp = 0
+			players[actor_id].per_turn_flags.last_skill_spent_mp = int(players[actor_id].per_turn_flags.get("last_skill_spent_mp", 0)) + spent_mp
+			var numerator = max(0, int(effect.get("ratio_numerator", 1)))
+			var denominator = max(1, int(effect.get("ratio_denominator", 1)))
+			var bonus = int(floor(float(spent_mp * numerator) / float(denominator)))
+			var amount = _modified_damage(actor_id, skill, int(effect.get("base", 0)) + bonus)
+			_log("P%d 额外投入 %d MP 释放 %s。" % [actor_id + 1, spent_mp, String(skill.name)])
 			_apply_damage(actor_id, target_id, amount, 10, String(skill.id))
 		"evasion_attack":
 			var amount = _modified_damage(actor_id, skill, int(effect.amount))
@@ -470,6 +508,19 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 				_add_status(actor_id, "immune", 1, 0)
 				_log("P%d 觉醒鹰眼，回复 20 MP，并获得本回合免疫。" % [actor_id + 1])
 	return true
+
+
+func _trigger_passive_on_skip_recover(player_id: int) -> void:
+	if not _valid_player(player_id):
+		return
+	var passive_id = String(players[player_id].character.get("passive", {}).get("id", ""))
+	if passive_id != "arcane_meditation":
+		return
+	var die = rng.randi_range(1, 6)
+	var gain = 20 if die >= 4 else 10
+	var before = int(players[player_id].mp)
+	players[player_id].mp = min(players[player_id].max_mp, players[player_id].mp + gain)
+	_log("P%d 触发奥术冥想，额外掷出 %d，回复 %d MP（%d -> %d）。" % [player_id + 1, die, players[player_id].mp - before, before, players[player_id].mp])
 
 
 func _start_interactive(kind: String, responder_id: int, actor_id: int, target_id: int, damage: int, break_damage: int, skill_id: String) -> void:
@@ -968,10 +1019,20 @@ func _mode_text(skill: Dictionary, modes: Array) -> String:
 	return "（%s）" % ", ".join(names)
 
 
+func _effect_amount(effect: Dictionary, modes: Array, fallback: int) -> int:
+	var amount = int(effect.get("amount", fallback))
+	var amount_by_mode = effect.get("amount_by_mode", {})
+	if amount_by_mode is Dictionary:
+		for mode_id in modes:
+			if amount_by_mode.has(String(mode_id)):
+				amount = int(amount_by_mode[String(mode_id)])
+	return amount
+
+
 func _modified_damage(player_id: int, skill: Dictionary, base_amount: int) -> int:
 	var amount = base_amount
 	for augment in players[player_id].augments:
-		if String(augment.effect) == "skill_damage_bonus" and String(augment.get("target_skill", "")) == String(skill.id):
+		if String(augment.effect) == "skill_damage_bonus" and _augment_targets_skill(augment, String(skill.id)):
 			amount += int(augment.amount)
 	amount += _augment_sum(players[player_id], "damage_bonus")
 	if player_id == first_player_id and _skill_is_attack(skill) and _has_augment(players[player_id], "initiative_pressure") and not bool(players[player_id].per_turn_flags.get("first_attack_bonus_used", false)):
@@ -987,9 +1048,19 @@ func _skill_is_attack(skill: Dictionary) -> bool:
 func _modified_shield_gain(player_id: int, skill: Dictionary, base_amount: int) -> int:
 	var amount = base_amount
 	for augment in players[player_id].augments:
-		if String(augment.effect) == "skill_shield_bonus" and String(augment.get("target_skill", "")) == String(skill.id):
+		if String(augment.effect) == "skill_shield_bonus" and _augment_targets_skill(augment, String(skill.id)):
 			amount += int(augment.amount)
 	return max(0, amount)
+
+
+func _augment_targets_skill(augment: Dictionary, skill_id: String) -> bool:
+	var target = augment.get("target_skill", "")
+	if target is Array:
+		for item in target:
+			if String(item) == skill_id:
+				return true
+		return false
+	return String(target) == skill_id
 
 
 func _augment_sum(player: Dictionary, effect: String) -> int:

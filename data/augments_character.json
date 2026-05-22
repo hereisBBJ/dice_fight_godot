@@ -69,5 +69,23 @@
       "target_skill": "pyromancer_fire_shield",
       "amount": 15
     }
+  ],
+  "arcanist": [
+    {
+      "id": "arcane_overload",
+      "name": "过载回路",
+      "description": "奥术冲击和风暴伤害 +15。",
+      "effect": "skill_damage_bonus",
+      "target_skill": ["arcanist_arcane_blast", "arcanist_storm"],
+      "amount": 15
+    },
+    {
+      "id": "mana_shield_matrix",
+      "name": "法盾矩阵",
+      "description": "法盾获得护盾 +15。",
+      "effect": "skill_shield_bonus",
+      "target_skill": "arcanist_mana_shield",
+      "amount": 15
+    }
   ]
 }
