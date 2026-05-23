@@ -1,4 +1,4 @@
- extends RefCounted
+extends RefCounted
 class_name UIAssets
 
 
@@ -11,13 +11,18 @@ static func color_from_hex(value: String, fallback: Color = Color(0.36, 0.45, 0.
 
 
 static func texture_from_path(path: String, fallback_color: Color, size: Vector2i = Vector2i(128, 128)) -> Texture2D:
-	if not path.is_empty():
-		var loaded = load(path)
-		if loaded is Texture2D:
-			return loaded
+	if path.is_empty() or not FileAccess.file_exists(path):
+		return make_color_texture(fallback_color, size)
+
+	if path.to_lower().ends_with(".svg"):
 		var svg_texture = _texture_from_svg(path)
 		if svg_texture != null:
 			return svg_texture
+
+	if ResourceLoader.exists(path):
+		var loaded = load(path)
+		if loaded is Texture2D:
+			return loaded
 	return make_color_texture(fallback_color, size)
 
 

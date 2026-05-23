@@ -46,24 +46,24 @@ func _requirement_text(requirements: Array) -> String:
 func _single_requirement_text(requirement) -> String:
 	if requirement is int or requirement is float:
 		return "≥%d" % int(requirement)
-	var text = String(requirement)
-	if text == "odd":
+	var requirement_text = String(requirement)
+	if requirement_text == "odd":
 		return "奇数"
-	if text == "even":
+	if requirement_text == "even":
 		return "偶数"
-	if text.begins_with("="):
-		return "=%s" % text.substr(1)
-	return text
+	if requirement_text.begins_with("="):
+		return "=%s" % requirement_text.substr(1)
+	return requirement_text
 
 
 func _apply_button_style(theme_color: Color) -> void:
 	var normal = UIAssetsScript.panel_style(theme_color.lightened(0.10), theme_color.darkened(0.20), 8)
 	var hover = UIAssetsScript.panel_style(theme_color.lightened(0.20), theme_color.darkened(0.12), 8)
-	var pressed = UIAssetsScript.panel_style(theme_color.darkened(0.08), theme_color.lightened(0.12), 8)
+	var pressed_style = UIAssetsScript.panel_style(theme_color.darkened(0.08), theme_color.lightened(0.12), 8)
 	var disabled_style = UIAssetsScript.panel_style(Color(0.34, 0.34, 0.32), Color(0.22, 0.22, 0.22), 8)
 	add_theme_stylebox_override("normal", normal)
 	add_theme_stylebox_override("hover", hover)
-	add_theme_stylebox_override("pressed", pressed)
+	add_theme_stylebox_override("pressed", pressed_style)
 	add_theme_stylebox_override("disabled", disabled_style)
 	add_theme_color_override("font_color", Color(0.98, 0.96, 0.88))
 	add_theme_color_override("font_disabled_color", Color(0.66, 0.66, 0.62))
