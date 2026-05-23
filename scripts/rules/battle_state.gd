@@ -385,6 +385,8 @@ func _execute_action(actor_id: int) -> bool:
 	if _skill_is_attack(skill):
 		players[actor_id].per_turn_flags.used_attack_skill = true
 		_record_presentation_event(actor_id, skill)
+	if String(skill.id) == "archer_backstep":
+		_record_presentation_event(actor_id, skill)
 	_log("P%d 结算 %s，消耗 %d MP。" % [actor_id + 1, skill.name, cost])
 	for effect in skill.effects:
 		if not _resolve_effect(actor_id, skill, effect, modes):

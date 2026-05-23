@@ -176,13 +176,23 @@ func _play_new_presentation_events(self_id: int, enemy_id: int) -> void:
 		_last_presentation_event_count = events.size()
 	for index in range(_last_presentation_event_count, events.size()):
 		var event: Dictionary = events[index]
-		if String(event.get("skill_type", "")) != "attack":
+		var animation_name = _animation_for_presentation_event(event)
+		if animation_name.is_empty():
 			continue
 		var actor_id = int(event.get("player_id", -1))
 		var portrait = _portrait_for_player(actor_id, self_id, enemy_id)
 		if portrait != null and portrait.has_method("play_character_animation"):
-			portrait.play_character_animation("attack", "battle_idle")
+			portrait.play_character_animation(animation_name, "battle_idle")
 	_last_presentation_event_count = events.size()
+
+
+func _animation_for_presentation_event(event: Dictionary) -> String:
+	var skill_id = String(event.get("skill_id", ""))
+	if skill_id == "archer_backstep":
+		return "backstep"
+	if String(event.get("skill_type", "")) == "attack":
+		return "attack"
+	return ""
 
 
 func _portrait_for_player(player_id: int, self_id: int, enemy_id: int):

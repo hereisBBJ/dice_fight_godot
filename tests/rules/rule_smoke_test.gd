@@ -128,6 +128,8 @@ func _test_swordsman_guard_rules() -> void:
 	var battle = _make_battle()
 	battle.first_player_id = 0
 	battle.players[0].shield = 0
+	battle.players[0].augments = []
+	battle.players[0].augment_ids = []
 	battle._try_sword_spirit(0, 20)
 	_expect(int(battle.players[0].shield) == 5, "sword spirit should grant 5 shield")
 
