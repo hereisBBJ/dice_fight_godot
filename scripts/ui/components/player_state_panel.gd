@@ -28,6 +28,7 @@ var _dice_view: DiceView
 var _last_hp = 0
 var _last_mp = 0
 var _last_shield = 0
+var _last_resources: Dictionary = {}
 var _has_previous = false
 
 
@@ -44,7 +45,8 @@ func set_player(player_id: int, battle, animate: bool = false, hide_private_info
 	add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.10, 0.11, 0.13, 0.94), theme_color.darkened(0.15), 7))
 	portrait.texture = UIAssetsScript.texture_from_path(String(character.get("portrait_path", "")), theme_color, Vector2i(192, 192))
 	name_label.text = "P%d  %s" % [player_id + 1, "未选择" if character.is_empty() else String(character.get("name", ""))]
-	role_label.text = battle.role_text(player_id)
+	var resource_text = battle.resource_text(player_id)
+	role_label.text = battle.role_text(player_id) if resource_text.is_empty() else "%s | %s" % [battle.role_text(player_id), resource_text]
 	_set_bar(hp_bar, "HP", int(player.get("hp", 0)), int(player.get("max_hp", 1)), Color(0.86, 0.20, 0.22))
 	_set_bar(mp_bar, "MP", int(player.get("mp", 0)), int(player.get("max_mp", 1)), Color(0.25, 0.48, 0.92))
 	_set_bar(shield_bar, "护盾", int(player.get("shield", 0)), int(player.get("max_shield", 1)), Color(0.35, 0.68, 0.90))
@@ -67,6 +69,7 @@ func set_player(player_id: int, battle, animate: bool = false, hide_private_info
 	_last_hp = int(player.get("hp", 0))
 	_last_mp = int(player.get("mp", 0))
 	_last_shield = int(player.get("shield", 0))
+	_last_resources = player.get("resources", {}).duplicate(true)
 	_has_previous = true
 
 
@@ -142,6 +145,17 @@ func _render_feedback(player: Dictionary) -> void:
 		messages.append("护盾 +%d" % (shield - _last_shield))
 	if mp > _last_mp:
 		messages.append("+%d MP" % (mp - _last_mp))
+	var resource_names = {}
+	for resource in player.get("character", {}).get("resources", []):
+		resource_names[String(resource.get("id", ""))] = String(resource.get("name", resource.get("id", "资源")))
+	for resource_id in player.get("resources", {}).keys():
+		var current_value = int(player.get("resources", {}).get(resource_id, 0))
+		var previous_value = int(_last_resources.get(resource_id, 0))
+		var resource_name = String(resource_names.get(String(resource_id), String(resource_id)))
+		if current_value > previous_value:
+			messages.append("%s +%d" % [resource_name, current_value - previous_value])
+		elif current_value < previous_value:
+			messages.append("%s -%d" % [resource_name, previous_value - current_value])
 	if messages.is_empty():
 		return
 	feedback_label.text = "  ".join(messages)

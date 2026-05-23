@@ -15,7 +15,9 @@ func _init() -> void:
 	await process_frame
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/pyromancer/pyromancer_portrait.svg", Color.WHITE) is Texture2D, "pyromancer portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/arcanist/arcanist_portrait.svg", Color.WHITE) is Texture2D, "arcanist portrait should load as texture")
+	_expect(UIAssetsScript.texture_from_path("res://assets/characters/vampire/vampire_portrait.svg", Color.WHITE) is Texture2D, "vampire portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/skills/arcanist/arcanist_storm.svg", Color.WHITE) is Texture2D, "arcanist storm icon should load as texture")
+	_expect(UIAssetsScript.texture_from_path("res://assets/skills/vampire/vampire_blood_disaster.svg", Color.WHITE) is Texture2D, "vampire blood disaster icon should load as texture")
 
 	main._on_start_local_requested()
 	await process_frame
@@ -37,6 +39,8 @@ func _init() -> void:
 	_expect(main._current_screen_key == "game_over", "game over phase should show game over screen")
 
 	await _test_arcanist_battle_screen_assets_and_overflow_button()
+	await _test_vampire_battle_screen_assets_and_buttons()
+	await _test_archer_battle_screen_mode_buttons()
 
 	if failures.is_empty():
 		print("PRESENTATION_SCREENS_SMOKE_TEST_OK")
@@ -62,11 +66,71 @@ func _test_arcanist_battle_screen_assets_and_overflow_button() -> void:
 	screen.setup(battle, network)
 	await process_frame
 	_expect(screen.self_character_portrait.texture != null, "arcanist battle portrait should render in battle screen")
+	var normal_blast_button = _find_button_with_text(screen, "奥术冲击\n0 MP")
+	_expect(normal_blast_button != null, "normal arcane blast button should be present in battle screen")
 	var overflow_button = _find_button_with_text(screen, "奥术冲击 · 溢出强化")
 	_expect(overflow_button != null, "overflow mode button should be present in battle screen")
 	if overflow_button != null:
 		_expect(not overflow_button.disabled, "overflow mode button should be enabled with 30 MP and matching dice")
 		_expect(overflow_button.text.find("30 MP") >= 0, "overflow mode button should display 30 MP cost")
+	root.remove_child(screen)
+	screen.free()
+	network.free()
+	await process_frame
+
+
+func _test_vampire_battle_screen_assets_and_buttons() -> void:
+	var battle = _make_battle("vampire", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].resources["blood_drops"] = 3
+	battle.players[0].dice = [6, 3, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	var network = NetworkControllerScript.new()
+	network.bind_battle_state(battle)
+	network.start_local(battle)
+	var screen = BattleScreenScene.instantiate()
+	root.add_child(screen)
+	await process_frame
+	screen.setup(battle, network)
+	await process_frame
+	_expect(screen.self_character_portrait.texture != null, "vampire battle portrait should render in battle screen")
+	_expect(screen.self_panel.role_label.text.find("血滴 3") >= 0, "vampire resource should render in player panel")
+	var blood_wall_10 = _find_button_with_text(screen, "血墙 · 失去 10 生命")
+	var blood_wall_20 = _find_button_with_text(screen, "血墙 · 失去 20 生命")
+	_expect(blood_wall_10 != null, "blood wall 10 mode button should be present")
+	_expect(blood_wall_20 != null, "blood wall 20 mode button should be present")
+	_expect(_count_buttons_with_text(screen, "血墙") == 2, "blood wall should only expose two mode buttons")
+	_expect(_count_buttons_with_text(screen, "血灾") == 1, "blood disaster should only expose one button")
+	root.remove_child(screen)
+	screen.free()
+	network.free()
+	await process_frame
+
+
+func _test_archer_battle_screen_mode_buttons() -> void:
+	var battle = _make_battle("archer", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].mp = 40
+	battle.players[0].dice = [6, 3, 2, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	var network = NetworkControllerScript.new()
+	network.bind_battle_state(battle)
+	network.start_local(battle)
+	var screen = BattleScreenScene.instantiate()
+	root.add_child(screen)
+	await process_frame
+	screen.setup(battle, network)
+	await process_frame
+	_expect(_count_buttons_with_text(screen, "射击") == 2, "archer shot should expose normal and locked buttons")
+	_expect(_count_buttons_with_text(screen, "后跳") == 2, "archer backstep should expose normal and empowered buttons")
+	var normal_shot = _find_button_with_text(screen, "射击\n0 MP")
+	var locked_shot = _find_button_with_text(screen, "射击 · 锁定攻击")
+	var normal_backstep = _find_button_with_text(screen, "后跳\n20 MP")
+	var empowered_backstep = _find_button_with_text(screen, "后跳 · 强化施法")
+	_expect(normal_shot != null, "normal shot button should be present")
+	_expect(locked_shot != null, "locked shot button should be present")
+	_expect(normal_backstep != null, "normal backstep button should be present")
+	_expect(empowered_backstep != null, "empowered backstep button should be present")
 	root.remove_child(screen)
 	screen.free()
 	network.free()
@@ -116,6 +180,15 @@ func _find_button_with_text(root_node: Node, snippet: String) -> Button:
 		if button != null and button.text.find(snippet) >= 0:
 			return button
 	return null
+
+
+func _count_buttons_with_text(root_node: Node, snippet: String) -> int:
+	var count = 0
+	for node in root_node.find_children("*", "Button", true, false):
+		var button = node as Button
+		if button != null and button.text.find(snippet) >= 0:
+			count += 1
+	return count
 
 
 func _pick_all_augments(main) -> void:

@@ -276,8 +276,13 @@ func _render_tools(column: VBoxContainer, player_id: int) -> void:
 
 
 func _add_skill_buttons(parent: GridContainer, player_id: int, skill: Dictionary) -> void:
-	_add_skill_button(parent, player_id, skill, [])
-	for mode in skill.get("modes", []):
+	var modes: Array = skill.get("modes", [])
+	if modes.is_empty():
+		_add_skill_button(parent, player_id, skill, [])
+		return
+	if not bool(skill.get("hide_base_button", false)):
+		_add_skill_button(parent, player_id, skill, [])
+	for mode in modes:
 		_add_skill_button(parent, player_id, skill, [String(mode.get("id", ""))])
 
 

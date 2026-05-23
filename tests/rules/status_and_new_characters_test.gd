@@ -30,6 +30,12 @@ func _run() -> void:
 	_test_arcanist_overflow_mode_spends_mp_for_bonus_damage()
 	_test_arcanist_damage_augment_buffs_blast_and_storm()
 	_test_arcanist_shield_augment_buffs_mana_shield()
+	_test_archer_base_mode_skills_still_resolve_normally()
+	_test_vampire_passive_gains_blood_from_life_loss()
+	_test_vampire_claw_gains_blood_on_hp_damage()
+	_test_vampire_blood_wall_20_mode_self_damages_and_gains_shield()
+	_test_vampire_blood_disaster_uses_current_blood_tier_at_resolution()
+	_test_vampire_conversion_consumes_all_blood_for_heal()
 
 
 func _expect(condition: bool, message: String) -> void:
@@ -65,9 +71,11 @@ func _test_new_character_data_loads() -> void:
 	_expect(battle.characters.has("witch_doctor"), "witch doctor data should load")
 	_expect(battle.characters.has("pyromancer"), "pyromancer data should load")
 	_expect(battle.characters.has("arcanist"), "arcanist data should load")
+	_expect(battle.characters.has("vampire"), "vampire data should load")
 	_expect(battle.character_augments.has("witch_doctor"), "witch doctor augments should load")
 	_expect(battle.character_augments.has("pyromancer"), "pyromancer augments should load")
 	_expect(battle.character_augments.has("arcanist"), "arcanist augments should load")
+	_expect(battle.character_augments.has("vampire"), "vampire augments should load")
 
 
 func _test_poison_ticks_at_round_start() -> void:
@@ -207,6 +215,93 @@ func _test_arcanist_shield_augment_buffs_mana_shield() -> void:
 	_expect(battle.submit_skip(1), "second player should skip before buffed mana shield")
 	_expect(battle.submit_skill(0, "arcanist_mana_shield"), "arcanist should cast mana shield with shield augment")
 	_expect(int(battle.players[0].shield) == 45, "mana shield matrix should increase mana shield by 15")
+
+
+func _test_archer_base_mode_skills_still_resolve_normally() -> void:
+	var battle = _make_battle("archer", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].mp = 20
+	battle.players[0].dice = [6, 3, 2, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before normal shot")
+	_expect(battle.submit_skill(0, "archer_shot"), "archer should cast normal shot without mode")
+	_expect(battle.phase == BattleStateScript.PHASE_INTERACTIVE, "normal shot should still enter shot evasion judgment")
+	_expect(String(battle.pending_interactive_request.get("kind", "")) == "shot_evasion", "normal shot should request shot_evasion interaction")
+
+	battle = _make_battle("archer", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].mp = 20
+	battle.players[0].dice = [6, 3, 2, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before normal backstep")
+	_expect(battle.submit_skill(0, "archer_backstep"), "archer should cast normal backstep without mode")
+	_expect(battle.phase == BattleStateScript.PHASE_INTERACTIVE, "normal backstep should still enter interactive judgment")
+
+
+func _test_vampire_passive_gains_blood_from_life_loss() -> void:
+	var battle = _make_battle("vampire", "swordsman")
+	battle._deal_direct_life_loss(1, 0, 20, "测试自损")
+	_expect(int(battle.players[0].resources.get("blood_drops", 0)) == 2, "vampire passive should gain 2 blood drops after losing 20 HP")
+
+
+func _test_vampire_claw_gains_blood_on_hp_damage() -> void:
+	var battle = _make_battle("vampire", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].dice = [3, 2, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before claw")
+	_expect(battle.submit_skill(0, "vampire_claw"), "vampire should cast claw")
+	_expect(int(battle.players[0].resources.get("blood_drops", 0)) == 1, "claw should gain 1 blood drop when it deals HP damage")
+
+
+func _test_vampire_blood_wall_20_mode_self_damages_and_gains_shield() -> void:
+	var battle = _make_battle("vampire", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].dice = [6, 3, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before blood wall")
+	_expect(battle.submit_skill(0, "vampire_blood_wall", ["loss_20"]), "vampire should cast blood wall 20 mode")
+	_expect(int(battle.players[0].hp) == 60, "blood wall 20 mode should cost 20 HP")
+	_expect(int(battle.players[0].shield) == 40, "blood wall 20 mode should grant 40 shield")
+	_expect(int(battle.players[0].resources.get("blood_drops", 0)) == 2, "blood wall self damage should trigger blood hunger")
+
+
+func _test_vampire_blood_disaster_uses_current_blood_tier_at_resolution() -> void:
+	var battle = _make_battle("vampire", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].dice = [6, 3, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	var self_hp_before = int(battle.players[0].hp)
+	var enemy_hp_before = int(battle.players[1].hp)
+	_expect(battle.submit_skip(1), "second player should skip before low-tier blood disaster")
+	_expect(battle.submit_skill(0, "vampire_blood_disaster"), "vampire should cast blood disaster")
+	_expect(int(battle.players[0].hp) == self_hp_before - 10, "low-tier blood disaster should self damage for 10")
+	_expect(int(battle.players[1].hp) == enemy_hp_before - 20, "low-tier blood disaster should deal 20 damage")
+
+	battle = _make_battle("vampire", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].resources["blood_drops"] = 6
+	battle.players[1].shield = 30
+	battle.players[0].dice = [6, 3, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	enemy_hp_before = int(battle.players[1].hp)
+	_expect(battle.submit_skip(1), "second player should skip before high-tier blood disaster")
+	_expect(battle.submit_skill(0, "vampire_blood_disaster"), "vampire should cast high-tier blood disaster")
+	_expect(int(battle.players[1].hp) == enemy_hp_before - 30, "high-tier blood disaster should bypass shield and deal 30 HP damage")
+	_expect(int(battle.players[1].shield) == 30, "high-tier blood disaster should leave shield intact")
+
+
+func _test_vampire_conversion_consumes_all_blood_for_heal() -> void:
+	var battle = _make_battle("vampire", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].hp = 50
+	battle.players[0].resources["blood_drops"] = 4
+	battle.players[0].dice = [6, 6, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before conversion")
+	_expect(battle.submit_skill(0, "vampire_conversion"), "vampire should cast conversion")
+	_expect(int(battle.players[0].hp) == 70, "conversion should heal 5 HP per blood drop consumed")
+	_expect(int(battle.players[0].resources.get("blood_drops", 0)) == 0, "conversion should consume all blood drops")
 
 
 func _grant_character_augment(battle, player_id: int, augment_id: String) -> void:

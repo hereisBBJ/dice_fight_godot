@@ -56,11 +56,18 @@ func _render_player_column(player_id: int, title: Label, options: VBoxContainer)
 		button.custom_minimum_size = Vector2(0, 108)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.text = "%s\nHP %d / MP %d / 护盾 %d\n%s：%s" % [
+		var resource_lines = []
+		for resource in character.get("resources", []):
+			resource_lines.append("%s %d" % [String(resource.get("name", resource.get("id", "资源"))), int(resource.get("initial", 0))])
+		var resource_text = ""
+		if not resource_lines.is_empty():
+			resource_text = "\n资源：%s" % " / ".join(resource_lines)
+		button.text = "%s\nHP %d / MP %d / 护盾 %d%s\n%s：%s" % [
 			String(character.get("name", character_id)),
 			int(character.get("max_hp", 0)),
 			int(character.get("max_mp", 0)),
 			int(character.get("max_shield", 0)),
+			resource_text,
 			String(character.get("passive", {}).get("name", "被动")),
 			String(character.get("passive", {}).get("description", ""))
 		]

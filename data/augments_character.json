@@ -87,5 +87,23 @@
       "target_skill": "arcanist_mana_shield",
       "amount": 15
     }
+  ],
+  "vampire": [
+    {
+      "id": "sanguine_frenzy",
+      "name": "猩红狂热",
+      "description": "爪击和血灾伤害 +10。",
+      "effect": "skill_damage_bonus",
+      "target_skill": ["vampire_claw", "vampire_blood_disaster"],
+      "amount": 10
+    },
+    {
+      "id": "coagulated_barrier",
+      "name": "凝血壁垒",
+      "description": "血墙获得护盾 +10。",
+      "effect": "skill_shield_bonus",
+      "target_skill": "vampire_blood_wall",
+      "amount": 10
+    }
   ]
 }
