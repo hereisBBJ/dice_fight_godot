@@ -226,13 +226,18 @@ func _begin_round(carry_last_turn: bool) -> void:
 		player.per_turn_flags = {
 			"used_skill": false,
 			"used_attack_skill": false,
+			"attack_skill_locked": bool(player.per_game_flags.get("attack_skill_lock_pending", false)),
 			"first_attack_bonus_used": false,
 			"end_mp_refund": 0,
 			"last_effect_hp_damage": 0,
 			"last_skill_precast_mp": 0,
 			"last_skill_spent_mp": 0,
-			"last_skill_id": ""
+			"last_skill_id": "",
+			"skill_cost_bonus": 0,
+			"adjust_cost_bonus_once": 0,
+			"adjust_cost_bonus_consumed": false
 		}
+		player.per_game_flags.attack_skill_lock_pending = false
 		player.dice = DiceRulesScript.roll_dice(rng, 4)
 		players[player_id] = player
 	_log("第 %d 回合开始。P%d 先手，P%d 后手。" % [round_num, first_player_id + 1, _second_player_id() + 1])
@@ -252,6 +257,8 @@ func reroll_dice(player_id: int) -> bool:
 		_log("P%d MP 不足，无法重掷。" % [player_id + 1])
 		return false
 	players[player_id].mp -= cost
+	if int(players[player_id].per_turn_flags.get("adjust_cost_bonus_once", 0)) > 0:
+		players[player_id].per_turn_flags.adjust_cost_bonus_consumed = true
 	players[player_id].has_rerolled_this_turn = true
 	players[player_id].dice = DiceRulesScript.roll_dice(rng, 4)
 	_log("P%d 重掷骰子，消耗 %d MP：%s。" % [player_id + 1, cost, _dice_text(players[player_id].dice)])
@@ -271,6 +278,8 @@ func modify_die(player_id: int, die_index: int, value: int) -> bool:
 		_log("P%d MP 不足，无法修改点数。" % [player_id + 1])
 		return false
 	players[player_id].mp -= cost
+	if int(players[player_id].per_turn_flags.get("adjust_cost_bonus_once", 0)) > 0:
+		players[player_id].per_turn_flags.adjust_cost_bonus_consumed = true
 	players[player_id].has_modified_this_turn = true
 	players[player_id].dice[die_index] = value
 	players[player_id].dice = DiceRulesScript.sort_desc(players[player_id].dice)
@@ -285,15 +294,24 @@ func _can_adjust_action_dice(player_id: int) -> bool:
 func get_reroll_cost(player_id: int) -> int:
 	var player: Dictionary = players[player_id]
 	if _has_augment(player, "dice_luck_shift") and not bool(player.has_rerolled_this_turn):
-		return 0
-	return 10
+		return 0 if bool(player.per_turn_flags.get("adjust_cost_bonus_consumed", false)) else int(player.per_turn_flags.get("adjust_cost_bonus_once", 0))
+	var cost = 10
+	if not bool(player.per_turn_flags.get("adjust_cost_bonus_consumed", false)):
+		cost += int(player.per_turn_flags.get("adjust_cost_bonus_once", 0))
+	return cost
 
 
 func get_modify_cost(player_id: int) -> int:
 	var player: Dictionary = players[player_id]
 	if _has_augment(player, "mind_calibration") and not bool(player.has_modified_this_turn):
-		return 10
-	return 20
+		var reduced_cost = 10
+		if not bool(player.per_turn_flags.get("adjust_cost_bonus_consumed", false)):
+			reduced_cost += int(player.per_turn_flags.get("adjust_cost_bonus_once", 0))
+		return reduced_cost
+	var cost = 20
+	if not bool(player.per_turn_flags.get("adjust_cost_bonus_consumed", false)):
+		cost += int(player.per_turn_flags.get("adjust_cost_bonus_once", 0))
+	return cost
 
 
 func submit_skip(player_id: int) -> bool:
@@ -421,8 +439,12 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 		"shield":
 			var amount = _modified_shield_gain(actor_id, skill, int(effect.amount))
 			_gain_shield(actor_id, amount)
+		"gain_mp":
+			_gain_mp(actor_id, int(_effect_amount(effect, modes, int(effect.get("amount", 0)))))
 		"gain_resource":
 			_gain_resource(actor_id, String(effect.get("resource_id", "")), int(_effect_amount(effect, modes, int(effect.get("amount", 0)))))
+		"consume_all_resource":
+			_spend_resource(actor_id, String(effect.get("resource_id", "")), get_resource_value(actor_id, String(effect.get("resource_id", ""))))
 		"gain_resource_on_hp_damage":
 			var hp_damage = int(players[actor_id].per_turn_flags.get("last_effect_hp_damage", 0))
 			var threshold = max(1, int(effect.get("hp_threshold", 1)))
@@ -478,6 +500,25 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 		"add_status":
 			var status_target = target_id if String(effect.get("target", "self")) == "enemy" else actor_id
 			_add_status(status_target, String(effect.status_id), int(effect.get("duration", 1)), int(effect.get("value", 0)), actor_id)
+		"static_cage":
+			var skill_cost_bonus = int(effect.get("second_amount", effect.get("amount", 0)))
+			var adjust_bonus = int(effect.get("second_adjust_bonus", effect.get("adjust_bonus", 0)))
+			if actor_id == first_player_id:
+				skill_cost_bonus = int(effect.get("first_amount", skill_cost_bonus))
+				adjust_bonus = int(effect.get("first_adjust_bonus", adjust_bonus))
+			_remove_status(target_id, "static_cage_pending")
+			_remove_status(target_id, "static_cage_active")
+			players[target_id].statuses.append({
+				"id": "static_cage_pending",
+				"duration": 1,
+				"value": skill_cost_bonus,
+				"adjust_bonus": adjust_bonus,
+				"source_id": actor_id
+			})
+			_log("P%d 被布设静电牢笼，将在下回合开始时生效。" % [target_id + 1])
+		"set_attack_skill_lock_next_turn":
+			players[actor_id].per_game_flags.attack_skill_lock_pending = true
+			_log("P%d 下回合将无法使用攻击技能。" % [actor_id + 1])
 		"lifesteal_damage":
 			var amount = _modified_damage(actor_id, skill, int(effect.amount))
 			var result = _apply_damage(actor_id, target_id, amount, 10, String(skill.id), effect)
@@ -574,13 +615,17 @@ func _trigger_passive_on_skip_recover(player_id: int) -> void:
 	if not _valid_player(player_id):
 		return
 	var passive_id = String(players[player_id].character.get("passive", {}).get("id", ""))
-	if passive_id != "arcane_meditation":
-		return
-	var die = rng.randi_range(1, 6)
-	var gain = 20 if die >= 4 else 10
-	var before = int(players[player_id].mp)
-	players[player_id].mp = min(players[player_id].max_mp, players[player_id].mp + gain)
-	_log("P%d 触发奥术冥想，额外掷出 %d，回复 %d MP（%d -> %d）。" % [player_id + 1, die, players[player_id].mp - before, before, players[player_id].mp])
+	match passive_id:
+		"arcane_meditation":
+			var die = rng.randi_range(1, 6)
+			var gain = 20 if die >= 4 else 10
+			var before = int(players[player_id].mp)
+			players[player_id].mp = min(players[player_id].max_mp, players[player_id].mp + gain)
+			_log("P%d 触发奥术冥想，额外掷出 %d，回复 %d MP（%d -> %d）。" % [player_id + 1, die, players[player_id].mp - before, before, players[player_id].mp])
+		"thunder_accumulation":
+			_gain_resource(player_id, "thunder_seals", 1)
+			_gain_mp(player_id, 10)
+			_log("P%d 触发雷霆积蓄。" % [player_id + 1])
 
 
 func _trigger_passive_on_take_damage(player_id: int, hp_lost: int, source_id: int, reason: String) -> void:
@@ -872,6 +917,18 @@ func _resolve_round_start_statuses() -> void:
 					kept_statuses.append(status)
 			elif status_id == "burn":
 				_resolve_burn_status(player_id, status)
+			elif status_id == "static_cage_pending":
+				players[player_id].per_turn_flags.skill_cost_bonus = int(status.get("value", 0))
+				players[player_id].per_turn_flags.adjust_cost_bonus_once = int(status.get("adjust_bonus", 10))
+				players[player_id].per_turn_flags.adjust_cost_bonus_consumed = false
+				kept_statuses.append({
+					"id": "static_cage_active",
+					"duration": 1,
+					"value": int(status.get("value", 0)),
+					"adjust_bonus": int(status.get("adjust_bonus", 0)),
+					"source_id": int(status.get("source_id", -1))
+				})
+				_log("P%d 的静电牢笼生效：本回合技能额外消耗 %d MP，首次重投或改点额外消耗 %d MP。" % [player_id + 1, int(status.get("value", 0)), int(status.get("adjust_bonus", 10))])
 			else:
 				kept_statuses.append(status)
 			if phase == PHASE_GAME_OVER:
@@ -935,7 +992,7 @@ func _finish_round() -> void:
 func _clear_end_round_statuses(player_id: int) -> void:
 	for index in range(players[player_id].statuses.size() - 1, -1, -1):
 		var status_id = String(players[player_id].statuses[index].id)
-		if status_id in ["guard", "immune", "sure_evasion", "fire_shield"]:
+		if status_id in ["guard", "immune", "sure_evasion", "fire_shield", "static_cage_active"]:
 			players[player_id].statuses.remove_at(index)
 
 
@@ -1051,8 +1108,13 @@ func get_skill_block_reason(player_id: int, skill: Dictionary, modes: Array = []
 		return "玩家不存在"
 	if not during_resolution and not players[player_id].submitted_action.is_empty():
 		return "本回合已经提交行动"
-	if not DiceRulesScript.requirements_met(players[player_id].dice, skill.get("dice_requirements", [])):
+	var ignore_count = 0
+	if String(skill.get("id", "")) == "stormcaller_judgement" and get_resource_value(player_id, "thunder_seals") >= 3:
+		ignore_count = 1
+	if not DiceRulesScript.requirements_met_with_ignore(players[player_id].dice, skill.get("dice_requirements", []), ignore_count):
 		return "骰子需求不满足"
+	if _skill_is_attack(skill) and bool(players[player_id].per_turn_flags.get("attack_skill_locked", false)):
+		return "本回合无法使用攻击技能"
 	if String(skill.id) == "archer_piercing_arrow" and int(players[player_id].dealt_damage_last_turn) > 0:
 		return "上回合已经造成过伤害"
 	if String(skill.id) == "archer_eagle_eye" and bool(players[player_id].per_game_flags.get("eagle_eye_used", false)):
@@ -1084,6 +1146,7 @@ func get_skill_cost(player_id: int, skill: Dictionary, modes: Array = []) -> int
 			cost += int(augment.amount)
 	if _has_augment(players[player_id], "precise_casting") and not bool(players[player_id].per_turn_flags.get("used_skill", false)):
 		cost -= 10
+	cost += int(players[player_id].per_turn_flags.get("skill_cost_bonus", 0))
 	return max(0, cost)
 
 
@@ -1222,6 +1285,14 @@ func _spend_resource(player_id: int, resource_id: String, amount: int) -> int:
 	return spent
 
 
+func _gain_mp(player_id: int, amount: int) -> void:
+	if amount <= 0:
+		return
+	var before = int(players[player_id].mp)
+	players[player_id].mp = min(players[player_id].max_mp, players[player_id].mp + amount)
+	_log("P%d 回复 %d MP（%d -> %d）。" % [player_id + 1, players[player_id].mp - before, before, players[player_id].mp])
+
+
 func resource_text(player_id: int) -> String:
 	if not _valid_player(player_id):
 		return ""
@@ -1258,6 +1329,8 @@ func status_text(player_id: int) -> String:
 		names.append("鹰眼")
 	if bool(players[player_id].per_game_flags.get("flame_tide", false)):
 		names.append("炎潮")
+	if bool(players[player_id].per_turn_flags.get("attack_skill_locked", false)):
+		names.append("禁攻")
 	return "无" if names.is_empty() else "、".join(names)
 
 

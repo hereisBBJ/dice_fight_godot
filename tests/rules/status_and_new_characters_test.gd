@@ -36,6 +36,12 @@ func _run() -> void:
 	_test_vampire_blood_wall_20_mode_self_damages_and_gains_shield()
 	_test_vampire_blood_disaster_uses_current_blood_tier_at_resolution()
 	_test_vampire_conversion_consumes_all_blood_for_heal()
+	_test_stormcaller_skip_passive_gains_seal_and_mp()
+	_test_stormcaller_arc_ray_gains_seal_on_hp_damage()
+	_test_stormcaller_surge_uses_low_and_high_tiers()
+	_test_stormcaller_static_cage_applies_next_turn_cost_penalties()
+	_test_stormcaller_judgement_ignores_one_requirement_and_consumes_seals()
+	_test_stormcaller_judgement_locks_next_turn_attack_skills()
 
 
 func _expect(condition: bool, message: String) -> void:
@@ -72,10 +78,12 @@ func _test_new_character_data_loads() -> void:
 	_expect(battle.characters.has("pyromancer"), "pyromancer data should load")
 	_expect(battle.characters.has("arcanist"), "arcanist data should load")
 	_expect(battle.characters.has("vampire"), "vampire data should load")
+	_expect(battle.characters.has("stormcaller"), "stormcaller data should load")
 	_expect(battle.character_augments.has("witch_doctor"), "witch doctor augments should load")
 	_expect(battle.character_augments.has("pyromancer"), "pyromancer augments should load")
 	_expect(battle.character_augments.has("arcanist"), "arcanist augments should load")
 	_expect(battle.character_augments.has("vampire"), "vampire augments should load")
+	_expect(battle.character_augments.has("stormcaller"), "stormcaller augments should load")
 
 
 func _test_poison_ticks_at_round_start() -> void:
@@ -302,6 +310,105 @@ func _test_vampire_conversion_consumes_all_blood_for_heal() -> void:
 	_expect(battle.submit_skill(0, "vampire_conversion"), "vampire should cast conversion")
 	_expect(int(battle.players[0].hp) == 70, "conversion should heal 5 HP per blood drop consumed")
 	_expect(int(battle.players[0].resources.get("blood_drops", 0)) == 0, "conversion should consume all blood drops")
+
+
+func _test_stormcaller_skip_passive_gains_seal_and_mp() -> void:
+	var battle = _make_battle("stormcaller", "swordsman")
+	battle.players[0].mp = 20
+	battle.players[0].dice = [1, 1, 1, 1]
+	battle._resolve_skip(0)
+	_expect(int(battle.players[0].resources.get("thunder_seals", 0)) == 1, "stormcaller skip passive should grant 1 thunder seal")
+	_expect(int(battle.players[0].mp) == 30, "stormcaller skip passive should restore passive 10 MP when skip roll grants no base MP")
+
+
+func _test_stormcaller_arc_ray_gains_seal_on_hp_damage() -> void:
+	var battle = _make_battle("stormcaller", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].dice = [3, 2, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before arc ray")
+	_expect(battle.submit_skill(0, "stormcaller_arc_ray"), "stormcaller should cast arc ray")
+	_expect(int(battle.players[0].resources.get("thunder_seals", 0)) == 1, "arc ray should grant 1 thunder seal when it deals HP damage")
+
+
+func _test_stormcaller_surge_uses_low_and_high_tiers() -> void:
+	var battle = _make_battle("stormcaller", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].mp = 20
+	battle.players[0].dice = [6, 3, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before low-tier surge")
+	_expect(battle.submit_skill(0, "stormcaller_surge"), "stormcaller should cast low-tier surge")
+	_expect(int(battle.players[0].mp) == 35, "low-tier surge should restore 15 MP")
+	_expect(int(battle.players[0].shield) == 10, "low-tier surge should grant 10 shield")
+	_expect(int(battle.players[0].resources.get("thunder_seals", 0)) == 1, "low-tier surge should grant 1 thunder seal")
+
+	battle = _make_battle("stormcaller", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].mp = 20
+	battle.players[0].resources["thunder_seals"] = 2
+	battle.players[0].dice = [6, 3, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before high-tier surge")
+	_expect(battle.submit_skill(0, "stormcaller_surge"), "stormcaller should cast high-tier surge")
+	_expect(int(battle.players[0].mp) == 40, "high-tier surge should restore 20 MP")
+	_expect(int(battle.players[0].shield) == 15, "high-tier surge should be capped by max shield 15")
+	_expect(int(battle.players[0].resources.get("thunder_seals", 0)) == 3, "high-tier surge should still cap thunder seals at 3")
+
+
+func _test_stormcaller_static_cage_applies_next_turn_cost_penalties() -> void:
+	var battle = _make_battle("stormcaller", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].dice = [6, 3, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	battle.players[1].mp = 50
+	_expect(battle.submit_skip(1), "second player should skip before first-player static cage")
+	_expect(battle.submit_skill(0, "stormcaller_static_cage"), "stormcaller should cast static cage as first player")
+	_expect(not _has_status(battle, 1, "static_cage_pending"), "static cage pending should resolve at next round start")
+	_expect(_has_status(battle, 1, "static_cage_active"), "static cage should show an active status during the affected turn")
+	_expect(int(battle.players[1].per_turn_flags.get("skill_cost_bonus", 0)) == 20, "first-player static cage should add 20 MP to next-turn skill costs")
+	_expect(int(battle.get_reroll_cost(1)) == 10, "first-player static cage should not add reroll penalty")
+	_expect(battle.reroll_dice(1), "target should still be able to reroll after paying penalty")
+	_expect(int(battle.get_modify_cost(1)) == 20, "static cage adjust penalty should be consumed after first reroll")
+
+	battle = _make_battle("swordsman", "stormcaller")
+	battle.first_player_id = 0
+	battle.players[1].dice = [6, 3, 1, 1]
+	battle.players[0].dice = [1, 1, 1, 1]
+	battle.players[0].mp = 50
+	_expect(battle.submit_skip(0), "first player should skip before second-player static cage")
+	_expect(battle.submit_skill(1, "stormcaller_static_cage"), "stormcaller should cast static cage as second player")
+	_expect(_has_status(battle, 0, "static_cage_active"), "second-player static cage should also show an active status during the affected turn")
+	_expect(int(battle.players[0].per_turn_flags.get("skill_cost_bonus", 0)) == 10, "second-player static cage should add 10 MP to next-turn skill costs")
+	_expect(int(battle.get_reroll_cost(0)) == 20, "second-player static cage should add 10 MP to the first reroll")
+
+
+func _test_stormcaller_judgement_ignores_one_requirement_and_consumes_seals() -> void:
+	var battle = _make_battle("stormcaller", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].mp = 60
+	battle.players[0].resources["thunder_seals"] = 3
+	battle.players[0].dice = [6, 6, 4, 4]
+	battle.players[1].dice = [1, 1, 1, 1]
+	var skill = battle.get_skill(0, "stormcaller_judgement")
+	_expect(battle.can_use_skill(0, skill), "judgement should ignore one requirement with 3 thunder seals")
+	_expect(battle.submit_skip(1), "second player should skip before judgement")
+	_expect(battle.submit_skill(0, "stormcaller_judgement"), "stormcaller should cast judgement")
+	_expect(int(battle.players[0].resources.get("thunder_seals", 0)) == 0, "judgement should consume all thunder seals")
+
+
+func _test_stormcaller_judgement_locks_next_turn_attack_skills() -> void:
+	var battle = _make_battle("stormcaller", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].mp = 60
+	battle.players[0].resources["thunder_seals"] = 3
+	battle.players[0].dice = [6, 6, 4, 4]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before judgement lock test")
+	_expect(battle.submit_skill(0, "stormcaller_judgement"), "stormcaller should cast judgement for lock test")
+	battle.players[0].dice = [3, 2, 1, 1]
+	var next_attack = battle.get_skill(0, "stormcaller_arc_ray")
+	_expect(String(battle.get_skill_block_reason(0, next_attack)) == "本回合无法使用攻击技能", "stormcaller should be unable to use attack skills on the next turn after judgement")
 
 
 func _grant_character_augment(battle, player_id: int, augment_id: String) -> void:

@@ -105,5 +105,23 @@
       "target_skill": "vampire_blood_wall",
       "amount": 10
     }
+  ],
+  "stormcaller": [
+    {
+      "id": "arc_conduction",
+      "name": "雷弧放大",
+      "description": "电弧射线和天罚伤害 +10。",
+      "effect": "skill_damage_bonus",
+      "target_skill": ["stormcaller_arc_ray", "stormcaller_judgement"],
+      "amount": 10
+    },
+    {
+      "id": "storm_barrier",
+      "name": "风暴壁垒",
+      "description": "雷暴蓄势获得护盾 +10。",
+      "effect": "skill_shield_bonus",
+      "target_skill": "stormcaller_surge",
+      "amount": 10
+    }
   ]
 }

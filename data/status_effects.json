@@ -46,5 +46,17 @@
     "name": "炎潮",
     "icon_path": "res://assets/status/flame_tide.svg",
     "description": "本局永久持续。之后施加灼烧层数 +1。"
+	},
+	{
+	  "id": "static_cage_pending",
+	  "name": "静电牢笼",
+	  "icon_path": "res://assets/status/static_cage_pending.svg",
+    "description": "下回合开始时生效。先手版会提高技能费用；后手版还会提高首次重投或改点费用。"
+  },
+  {
+    "id": "static_cage_active",
+    "name": "静电牢笼·激活",
+    "icon_path": "res://assets/status/static_cage_pending.svg",
+    "description": "本回合受静电牢笼影响：技能费用提高；若为后手版，还会使第一次重投或改点费用提高。"
   }
 ]

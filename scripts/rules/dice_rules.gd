@@ -24,6 +24,33 @@ static func requirements_met(dice: Array, requirements: Array) -> bool:
 	return _match_requirement(0, requirements, dice, used)
 
 
+static func requirements_met_with_ignore(dice: Array, requirements: Array, ignore_count: int) -> bool:
+	if requirements == null or requirements.is_empty():
+		return true
+	if ignore_count <= 0:
+		return requirements_met(dice, requirements)
+	var used = []
+	used.resize(dice.size())
+	used.fill(false)
+	return _match_requirement_with_ignore(0, requirements, dice, used, ignore_count)
+
+
+static func _match_requirement_with_ignore(index: int, requirements: Array, dice: Array, used: Array, ignore_count: int) -> bool:
+	if index >= requirements.size():
+		return true
+	if ignore_count > 0 and _match_requirement_with_ignore(index + 1, requirements, dice, used, ignore_count - 1):
+		return true
+	for die_index in range(dice.size()):
+		if used[die_index]:
+			continue
+		if matches_requirement(int(dice[die_index]), requirements[index]):
+			used[die_index] = true
+			if _match_requirement_with_ignore(index + 1, requirements, dice, used, ignore_count):
+				return true
+			used[die_index] = false
+	return false
+
+
 static func _match_requirement(index: int, requirements: Array, dice: Array, used: Array) -> bool:
 	if index >= requirements.size():
 		return true
@@ -48,6 +75,8 @@ static func matches_requirement(value: int, requirement: Variant) -> bool:
 		return value % 2 == 1
 	if text == "even" or text == "偶数":
 		return value % 2 == 0
+	if text == "any" or text == "任意":
+		return true
 	if text.begins_with("="):
 		return value == int(text.substr(1))
 	var dash_index = text.find("-")

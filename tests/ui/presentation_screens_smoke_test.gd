@@ -16,8 +16,10 @@ func _init() -> void:
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/pyromancer/pyromancer_portrait.svg", Color.WHITE) is Texture2D, "pyromancer portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/arcanist/arcanist_portrait.svg", Color.WHITE) is Texture2D, "arcanist portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/vampire/vampire_portrait.svg", Color.WHITE) is Texture2D, "vampire portrait should load as texture")
+	_expect(UIAssetsScript.texture_from_path("res://assets/characters/stormcaller/stormcaller_portrait.svg", Color.WHITE) is Texture2D, "stormcaller portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/skills/arcanist/arcanist_storm.svg", Color.WHITE) is Texture2D, "arcanist storm icon should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/skills/vampire/vampire_blood_disaster.svg", Color.WHITE) is Texture2D, "vampire blood disaster icon should load as texture")
+	_expect(UIAssetsScript.texture_from_path("res://assets/skills/stormcaller/stormcaller_judgement.svg", Color.WHITE) is Texture2D, "stormcaller judgement icon should load as texture")
 
 	main._on_start_local_requested()
 	await process_frame
@@ -41,6 +43,7 @@ func _init() -> void:
 	await _test_arcanist_battle_screen_assets_and_overflow_button()
 	await _test_vampire_battle_screen_assets_and_buttons()
 	await _test_archer_battle_screen_mode_buttons()
+	await _test_stormcaller_battle_screen_resources_and_judgement()
 
 	if failures.is_empty():
 		print("PRESENTATION_SCREENS_SMOKE_TEST_OK")
@@ -137,6 +140,37 @@ func _test_archer_battle_screen_mode_buttons() -> void:
 	await process_frame
 
 
+func _test_stormcaller_battle_screen_resources_and_judgement() -> void:
+	var battle = _make_battle("stormcaller", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].mp = 60
+	battle.players[0].resources["thunder_seals"] = 3
+	battle.players[0].statuses.append({"id": "static_cage_active", "value": 10, "adjust_bonus": 10})
+	battle.players[1].statuses.append({"id": "static_cage_active", "value": 20, "adjust_bonus": 0})
+	battle.players[0].dice = [6, 6, 4, 4]
+	battle.players[1].dice = [1, 1, 1, 1]
+	var network = NetworkControllerScript.new()
+	network.bind_battle_state(battle)
+	network.start_local(battle)
+	var screen = BattleScreenScene.instantiate()
+	root.add_child(screen)
+	await process_frame
+	screen.setup(battle, network)
+	await process_frame
+	_expect(screen.self_character_portrait.texture != null, "stormcaller battle portrait should render in battle screen")
+	_expect(screen.self_panel.role_label.text.find("雷印 3") >= 0, "stormcaller resource should render in player panel")
+	var judgement_button = _find_button_with_text(screen, "天罚")
+	_expect(judgement_button != null, "judgement button should be present")
+	_expect(_status_tooltip_contains(screen.self_panel, "第一次重投或改点额外消耗 10 MP"), "stormcaller self static cage tooltip should show the second-player variant")
+	_expect(_status_tooltip_contains(screen.enemy_panel, "技能额外消耗 20 MP。"), "enemy static cage tooltip should show the first-player variant")
+	if judgement_button != null:
+		_expect(not judgement_button.disabled, "judgement should be enabled when 3 thunder seals allow ignoring one requirement")
+	root.remove_child(screen)
+	screen.free()
+	network.free()
+	await process_frame
+
+
 func _make_battle(p1_character: String, p2_character: String):
 	var battle = BattleStateScript.new()
 	battle.setup()
@@ -189,6 +223,13 @@ func _count_buttons_with_text(root_node: Node, snippet: String) -> int:
 		if button != null and button.text.find(snippet) >= 0:
 			count += 1
 	return count
+
+
+func _status_tooltip_contains(panel, snippet: String) -> bool:
+	for child in panel.status_row.get_children():
+		if String(child.tooltip_text).find(snippet) >= 0:
+			return true
+	return false
 
 
 func _pick_all_augments(main) -> void:

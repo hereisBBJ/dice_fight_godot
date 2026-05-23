@@ -1,0 +1,101 @@
+{
+  "id": "stormcaller",
+  "name": "引雷术士",
+  "theme_color": "#4f7de6",
+  "portrait_path": "res://assets/characters/stormcaller/stormcaller_portrait.svg",
+  "initial_hp": 75,
+  "max_hp": 75,
+  "initial_mp": 20,
+  "max_mp": 80,
+  "max_shield": 15,
+  "resources": [
+    {
+      "id": "thunder_seals",
+      "name": "雷印",
+      "initial": 0,
+      "max": 3,
+      "show_in_ui": true
+    }
+  ],
+  "passive": {
+    "id": "thunder_accumulation",
+    "name": "雷霆积蓄",
+    "description": "跳过回合时，获得 1 层雷印，并额外回复 10 MP。"
+  },
+  "skills": [
+    {
+      "id": "stormcaller_arc_ray",
+      "name": "电弧射线",
+      "icon_path": "res://assets/skills/stormcaller/stormcaller_arc_ray.svg",
+      "type": "attack",
+      "cost": 0,
+      "dice_requirements": ["1-3", "1-3"],
+      "description": "造成 15 点伤害；若本次成功削减目标生命值，则获得 1 层雷印。",
+      "effects": [
+        {"type": "damage", "amount": 15},
+        {"type": "gain_resource_on_hp_damage", "resource_id": "thunder_seals", "amount": 1, "hp_threshold": 1}
+      ]
+    },
+    {
+      "id": "stormcaller_static_cage",
+      "name": "静电牢笼",
+      "icon_path": "res://assets/skills/stormcaller/stormcaller_static_cage.svg",
+      "type": "attack",
+      "cost": 10,
+      "dice_requirements": ["1-3", 6],
+      "description": "造成 5 点伤害，并布设静电牢笼。若先手使用，则对手下回合技能额外消耗 20 MP；若后手使用，则额外消耗 10 MP，且下回合第一次重投或改点额外消耗 10 MP。",
+      "effects": [
+        {"type": "damage", "amount": 5},
+        {"type": "static_cage", "first_amount": 20, "first_adjust_bonus": 0, "second_amount": 10, "second_adjust_bonus": 10}
+      ]
+    },
+    {
+      "id": "stormcaller_surge",
+      "name": "雷暴蓄势",
+      "icon_path": "res://assets/skills/stormcaller/stormcaller_surge.svg",
+      "type": "defense",
+      "cost": 0,
+      "dice_requirements": [6, "1-3"],
+      "description": "获得 1 层雷印。若当前已有 2 层及以上雷印，则回复 20 MP 并获得 20 护盾，否则回复 15 MP 并获得 10 护盾。",
+      "effects": [
+        {
+          "type": "tiered_by_resource",
+          "resource_id": "thunder_seals",
+          "tiers": [
+            {
+              "min": 0,
+              "max": 1,
+              "effects": [
+                {"type": "gain_resource", "resource_id": "thunder_seals", "amount": 1},
+                {"type": "gain_mp", "amount": 15},
+                {"type": "shield", "amount": 10}
+              ]
+            },
+            {
+              "min": 2,
+              "effects": [
+                {"type": "gain_resource", "resource_id": "thunder_seals", "amount": 1},
+                {"type": "gain_mp", "amount": 20},
+                {"type": "shield", "amount": 20}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stormcaller_judgement",
+      "name": "天罚",
+      "icon_path": "res://assets/skills/stormcaller/stormcaller_judgement.svg",
+      "type": "attack",
+      "cost": 30,
+      "dice_requirements": [6, 6, "1-3", "任意"],
+      "description": "造成 50 点伤害。若拥有 3 层雷印，则施放时可忽略一个骰子需求条件。使用后消耗全部雷印，且下回合无法使用攻击技能。",
+      "effects": [
+        {"type": "damage", "amount": 50},
+        {"type": "consume_all_resource", "resource_id": "thunder_seals"},
+        {"type": "set_attack_skill_lock_next_turn"}
+      ]
+    }
+  ]
+}
