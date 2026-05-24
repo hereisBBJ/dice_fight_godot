@@ -35,6 +35,7 @@
 ## Progress Hygiene
 - After every important modification, explicitly re-check project progress before stopping:
   - compare the change against `docs/GAME_DESIGN.md`, `docs/TECH_DESIGN.md`, and this `AGENTS.md`;
+  - update `docs/FORMAL_UI_DEVELOPMENT_PLAN.md` when changing formal UI scope, assets, scene/component structure, or workstream status;
   - update this file if the supported scope, milestones, test commands, known limitations, or tooling assumptions changed;
   - run the smallest relevant validation set for the modified area;
   - inspect `git status --short --branch` and summarize dirty files or commits needed.
