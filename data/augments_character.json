@@ -123,5 +123,23 @@
       "target_skill": "stormcaller_surge",
       "amount": 10
     }
+  ],
+  "frost_swordsman": [
+    {
+      "id": "shivering_edge",
+      "name": "寒锋激化",
+      "description": "霜刺伤害 +10。",
+      "effect": "skill_damage_bonus",
+      "target_skill": "frost_swordsman_frost_thrust",
+      "amount": 10
+    },
+    {
+      "id": "glacial_barrier",
+      "name": "冰川壁垒",
+      "description": "冰墙获得护盾 +10。",
+      "effect": "skill_shield_bonus",
+      "target_skill": "frost_swordsman_ice_wall",
+      "amount": 10
+    }
   ]
 }

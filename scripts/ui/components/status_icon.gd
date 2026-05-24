@@ -27,6 +27,12 @@ func _status_label(display_name: String, status: Dictionary) -> String:
 		return "%s x%d" % [display_name, int(status.get("layers", 1))]
 	if status_id == "soul_bind":
 		return "%s x%d" % [display_name, int(status.get("layers", 1))]
+	if status_id == "cold":
+		return "%s x%d" % [display_name, int(status.get("layers", 1))]
+	if status_id == "frost_tide":
+		return "%s x%d" % [display_name, int(status.get("duration", 1))]
+	if status_id == "ice_wind":
+		return "%s x%d" % [display_name, int(status.get("duration", 1))]
 	return display_name
 
 
@@ -48,6 +54,15 @@ func _status_description(status: Dictionary, fallback: String) -> String:
 		return "当前有 %d 层中毒。回合结束时失去 5 点生命，之后层数减 1；可用净化行动清除全部中毒。" % int(status.get("layers", 1))
 	if status_id == "soul_bind":
 		return "当前有 %d 层缚魂。若仍带有中毒，回合开始时对方可指定同等数量的技能本回合无法使用。" % int(status.get("layers", 1))
+	if status_id == "cold":
+		return "当前有 %d 层寒冷。部分冰系技能会消耗或利用这些层数触发额外效果。" % int(status.get("layers", 1))
+	if status_id == "frost_tide":
+		return "寒潮强化剩余 %d 回合。使用霜刺或冰风后，若目标有寒冷，可消耗 1 层寒冷进行追击。" % int(status.get("duration", 1))
+	if status_id == "ice_wind":
+		var pending_rounds = int(status.get("pending_rounds", 0))
+		if pending_rounds > 0:
+			return "冰风将在 %d 个回合开始阶段后发动，随后还会持续 %d 次。" % [pending_rounds, int(status.get("duration", 1))]
+		return "冰风剩余 %d 次发动：回合开始前造成 5 点伤害，并使双方各获得 1 层寒冷。" % int(status.get("duration", 1))
 	return fallback
 
 
@@ -63,6 +78,12 @@ func _status_color(status_id: String) -> Color:
 			return Color(0.33, 0.72, 0.42)
 		"poison":
 			return Color(0.55, 0.35, 0.80)
+		"cold":
+			return Color(0.47, 0.78, 0.96)
+		"frost_tide":
+			return Color(0.69, 0.87, 0.98)
+		"ice_wind":
+			return Color(0.60, 0.84, 0.98)
 		"soul_bind":
 			return Color(0.44, 0.22, 0.70)
 		"burn":

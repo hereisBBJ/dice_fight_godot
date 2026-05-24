@@ -165,6 +165,9 @@ func _execute_command(player_id: int, command: Dictionary) -> bool:
 		"interactive_select_skill":
 			if _interactive_belongs_to(player_id):
 				return battle.interactive_select_skill(String(command.get("skill_id", "")))
+		"interactive_select_option":
+			if _interactive_belongs_to(player_id):
+				return battle.interactive_select_option(String(command.get("option_id", "")))
 		"restart_request", "reset_to_character_select":
 			return _execute_global_command(command)
 	return false

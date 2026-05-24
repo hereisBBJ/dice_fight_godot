@@ -484,6 +484,19 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 		"shield":
 			var amount = _modified_shield_gain(actor_id, skill, int(effect.amount))
 			_gain_shield(actor_id, amount)
+		"add_cold":
+			var cold_target = actor_id if String(effect.get("target", "enemy")) == "self" else target_id
+			_add_cold(actor_id, cold_target, int(effect.get("layers", 1)))
+		"frost_strike":
+			_add_cold(actor_id, actor_id, int(effect.get("self_cold_layers", 1)))
+			var strike_damage = _modified_damage(actor_id, skill, int(effect.get("damage", 0)))
+			var strike_result = _apply_damage(actor_id, target_id, strike_damage, 10, String(skill.id), effect)
+			players[actor_id].per_turn_flags.last_effect_hp_damage = int(strike_result.get("hp_damage", 0))
+			if int(strike_result.get("hp_damage", 0)) > 0:
+				var bonus_damage = _modified_damage(actor_id, skill, int(effect.get("bonus_damage", 0)))
+				var bonus_result = _apply_damage(actor_id, target_id, bonus_damage, 10, String(skill.id), effect)
+				players[actor_id].per_turn_flags.last_effect_hp_damage = int(bonus_result.get("hp_damage", 0))
+				_add_cold(actor_id, target_id, int(effect.get("target_cold_layers_on_hp_damage", 1)))
 		"gain_mp":
 			_gain_mp(actor_id, int(_effect_amount(effect, modes, int(effect.get("amount", 0)))))
 		"gain_resource":
@@ -545,8 +558,45 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 		"add_status":
 			var status_target = target_id if String(effect.get("target", "self")) == "enemy" else actor_id
 			_add_status(status_target, String(effect.status_id), int(effect.get("duration", 1)), int(effect.get("value", 0)), actor_id)
+		"frost_tide":
+			var current_cold = _cold_layers(actor_id)
+			if current_cold <= 0:
+				_log("P%d 没有寒冷层数，寒潮失败。" % [actor_id + 1])
+			else:
+				_spend_cold_layers(actor_id, current_cold)
+				_remove_status(actor_id, "frost_tide")
+				players[actor_id].statuses.append({
+					"id": "frost_tide",
+					"duration": current_cold,
+					"pending_decay": 1,
+					"source_id": actor_id
+				})
+				_log("P%d 消耗 %d 层寒冷，进入寒潮强化。" % [actor_id + 1, current_cold])
+		"start_ice_wind":
+			_remove_status(actor_id, "ice_wind")
+			players[actor_id].statuses.append({
+				"id": "ice_wind",
+				"duration": int(effect.get("duration", 3)),
+				"pending_rounds": int(effect.get("delay_rounds", 1)),
+				"source_id": actor_id
+			})
+			_log("P%d 释放冰风，将在后续回合开始前持续发动。" % [actor_id + 1])
 		"witch_hex":
 			_start_interactive("witch_hex", actor_id, actor_id, target_id, 0, 0, String(skill.id))
+			return false
+		"status_consume_choice":
+			if not _has_status(actor_id, String(effect.get("actor_status_id", ""))):
+				return true
+			var required_status_id = String(effect.get("target_status_id", ""))
+			var required_target = String(effect.get("target_status_target", "enemy"))
+			var required_player_id = actor_id if required_target == "self" else target_id
+			var required_layers = 0
+			match required_status_id:
+				"cold":
+					required_layers = _cold_layers(required_player_id)
+			if required_layers <= 0:
+				return true
+			_start_effect_choice(actor_id, target_id, String(skill.id), effect)
 			return false
 		"poison_extract":
 			var total_poison = _poison_layers(target_id)
@@ -716,6 +766,16 @@ func _trigger_passive_on_take_damage(player_id: int, hp_lost: int, source_id: in
 				_log("P%d 因%s从%s失去 %d 点生命，触发血之饥渴。" % [player_id + 1, reason, source_text, hp_lost])
 
 
+func _trigger_passive_on_shield_absorb(defender_id: int, attacker_id: int, absorbed_damage: int) -> void:
+	if not _valid_player(defender_id) or not _valid_player(attacker_id) or absorbed_damage <= 0:
+		return
+	var passive_id = String(players[defender_id].character.get("passive", {}).get("id", ""))
+	if passive_id != "frost_armor_thorns":
+		return
+	_add_cold(defender_id, attacker_id, 1)
+	_log("P%d 的寒甲反刺触发，对 P%d 施加 1 层寒冷。" % [defender_id + 1, attacker_id + 1])
+
+
 func _start_interactive(kind: String, responder_id: int, actor_id: int, target_id: int, damage: int, break_damage: int, skill_id: String) -> void:
 	var die = rng.randi_range(1, 6)
 	phase = PHASE_INTERACTIVE
@@ -759,6 +819,25 @@ func _start_skill_disable_selection(source_id: int, target_id: int, remaining_co
 	}
 	_interactive_context = pending_interactive_request.duplicate(true)
 	_log("P%d 需要为 P%d 选择本回合不可用的技能。" % [source_id + 1, target_id + 1])
+
+
+func _start_effect_choice(actor_id: int, target_id: int, skill_id: String, effect: Dictionary) -> void:
+	phase = PHASE_INTERACTIVE
+	pending_interactive_request = {
+		"kind": "effect_choice",
+		"responder_id": actor_id,
+		"actor_id": actor_id,
+		"target_id": target_id,
+		"skill_id": skill_id,
+		"title": String(effect.get("title", "效果选择")),
+		"description": String(effect.get("description", "请选择一项效果。")),
+		"options": effect.get("options", []).duplicate(true),
+		"consume_status_id": String(effect.get("consume_status_id", "")),
+		"consume_target": String(effect.get("consume_target", "enemy")),
+		"consume_amount": int(effect.get("consume_amount", 0))
+	}
+	_interactive_context = pending_interactive_request.duplicate(true)
+	_log("P%d 需要选择一个追加效果。" % [actor_id + 1])
 
 
 func interactive_accept() -> bool:
@@ -814,6 +893,17 @@ func interactive_select_skill(skill_id: String) -> bool:
 	return true
 
 
+func interactive_select_option(option_id: String) -> bool:
+	if phase != PHASE_INTERACTIVE or String(pending_interactive_request.get("kind", "")) != "effect_choice":
+		return false
+	for option in pending_interactive_request.get("options", []):
+		if String(option.get("id", "")) == option_id:
+			_interactive_context.selected_option_id = option_id
+			_apply_interactive_result()
+			return true
+	return false
+
+
 func _apply_interactive_result() -> void:
 	var kind = String(_interactive_context.kind)
 	if kind == "shot_evasion":
@@ -865,10 +955,35 @@ func _apply_interactive_result() -> void:
 		if remaining_count > 0:
 			_start_skill_disable_selection(source_id, target_id, remaining_count, selected_skill_ids)
 			return
+	elif kind == "effect_choice":
+		var actor_id = int(_interactive_context.actor_id)
+		var target_id = int(_interactive_context.target_id)
+		var selected_option_id = String(_interactive_context.get("selected_option_id", ""))
+		var consume_status_id = String(_interactive_context.get("consume_status_id", ""))
+		var consume_target = String(_interactive_context.get("consume_target", "enemy"))
+		var consume_amount = int(_interactive_context.get("consume_amount", 0))
+		var consume_player_id = actor_id if consume_target == "self" else target_id
+		if consume_amount > 0:
+			match consume_status_id:
+				"cold":
+					if _cold_layers(consume_player_id) < consume_amount:
+						_log("P%d 没有足够寒冷层数，无法追加效果。" % [consume_player_id + 1])
+					else:
+						_spend_cold_layers(consume_player_id, consume_amount)
+		var selected_skill = get_skill(actor_id, String(_interactive_context.get("skill_id", "")))
+		for option in _interactive_context.get("options", []):
+			if String(option.get("id", "")) != selected_option_id:
+				continue
+			for nested_effect in option.get("effects", []):
+				if not _resolve_effect(actor_id, selected_skill, nested_effect, []):
+					return
+				if phase == PHASE_GAME_OVER:
+					break
+			break
 	pending_interactive_request = {}
 	_interactive_context = {}
 	if phase != PHASE_GAME_OVER:
-		if kind in ["shot_evasion", "backstep", "witch_hex"]:
+		if kind in ["shot_evasion", "backstep", "witch_hex", "effect_choice"]:
 			phase = PHASE_RESOLVING
 			_resolution_index += 1
 			_continue_resolution()
@@ -930,6 +1045,8 @@ func _apply_damage(attacker: int, target: int, amount: int, break_life_damage: i
 			if _has_status(target, "fire_shield"):
 				_log("P%d 的火盾被破盾触发，对 P%d 反施加灼烧。" % [target + 1, attacker + 1])
 				_add_burn(target, attacker, 1)
+		if int(result.get("hp_damage", 0)) <= 0 and int(result.get("shield_damage", 0)) > 0:
+			_trigger_passive_on_shield_absorb(target, attacker, int(result.get("shield_damage", 0)))
 	_check_game_over()
 	return result
 
@@ -1206,6 +1323,59 @@ func _add_burn(source_id: int, target_id: int, base_layers: int) -> void:
 	_log("P%d 获得 %d 层灼烧。" % [target_id + 1, layers])
 
 
+func _add_cold(source_id: int, target_id: int, layers: int) -> void:
+	if layers <= 0:
+		return
+	for index in range(players[target_id].statuses.size()):
+		var status: Dictionary = players[target_id].statuses[index]
+		if String(status.get("id", "")) == "cold" and int(status.get("source_id", -1)) == source_id:
+			players[target_id].statuses[index].layers = int(status.get("layers", 0)) + layers
+			_log("P%d 获得 %d 层寒冷（共 %d 层）。" % [target_id + 1, layers, int(players[target_id].statuses[index].layers)])
+			return
+	players[target_id].statuses.append({
+		"id": "cold",
+		"duration": 0,
+		"value": 0,
+		"layers": layers,
+		"source_id": source_id
+	})
+	_log("P%d 获得 %d 层寒冷。" % [target_id + 1, layers])
+
+
+func _cold_layers(player_id: int, source_id: int = -999) -> int:
+	var total = 0
+	for status in players[player_id].statuses:
+		if String(status.get("id", "")) != "cold":
+			continue
+		if source_id != -999 and int(status.get("source_id", -1)) != source_id:
+			continue
+		total += int(status.get("layers", 0))
+	return total
+
+
+func _spend_cold_layers(player_id: int, amount: int) -> int:
+	if amount <= 0:
+		return 0
+	var remaining = amount
+	var removed = 0
+	for index in range(players[player_id].statuses.size() - 1, -1, -1):
+		var status: Dictionary = players[player_id].statuses[index]
+		if String(status.get("id", "")) != "cold":
+			continue
+		var current_layers = int(status.get("layers", 0))
+		var take = min(current_layers, remaining)
+		remaining -= take
+		removed += take
+		current_layers -= take
+		if current_layers <= 0:
+			players[player_id].statuses.remove_at(index)
+		else:
+			players[player_id].statuses[index].layers = current_layers
+		if remaining <= 0:
+			break
+	return removed
+
+
 func _burn_layer_bonus(source_id: int) -> int:
 	if not _valid_player(source_id):
 		return 0
@@ -1225,8 +1395,25 @@ func _resolve_round_start_statuses() -> void:
 			var status_id = String(status.id)
 			if status_id == "poison":
 				kept_statuses.append(status)
+			elif status_id == "cold":
+				kept_statuses.append(status)
 			elif status_id == "burn":
 				_resolve_burn_status(player_id, status)
+			elif status_id == "frost_tide":
+				kept_statuses.append(status)
+			elif status_id == "ice_wind":
+				var pending_rounds = int(status.get("pending_rounds", 0))
+				if pending_rounds > 0:
+					var waiting_status = status.duplicate(true)
+					waiting_status.pending_rounds = pending_rounds - 1
+					kept_statuses.append(waiting_status)
+				else:
+					_resolve_ice_wind_status(player_id)
+					var remaining_duration = int(status.get("duration", 0)) - 1
+					if remaining_duration > 0:
+						var active_status = status.duplicate(true)
+						active_status.duration = remaining_duration
+						kept_statuses.append(active_status)
 			elif status_id == "static_cage_pending":
 				players[player_id].per_turn_flags.skill_cost_bonus = int(status.get("value", 0))
 				players[player_id].per_turn_flags.adjust_cost_bonus_once = int(status.get("adjust_bonus", 10))
@@ -1263,6 +1450,16 @@ func _resolve_round_end_statuses() -> void:
 		_deal_direct_life_loss(source_id, player_id, 5, "中毒")
 		_spend_poison_layers(player_id, 1)
 		_clear_soul_bind_if_no_poison(player_id)
+	for player_id in range(2):
+		for index in range(players[player_id].statuses.size() - 1, -1, -1):
+			if String(players[player_id].statuses[index].id) != "frost_tide":
+				continue
+			if int(players[player_id].statuses[index].get("pending_decay", 0)) > 0:
+				players[player_id].statuses[index].pending_decay = 0
+				continue
+			players[player_id].statuses[index].duration = int(players[player_id].statuses[index].get("duration", 0)) - 1
+			if int(players[player_id].statuses[index].duration) <= 0:
+				players[player_id].statuses.remove_at(index)
 
 
 func _resolve_burn_status(target_id: int, status: Dictionary) -> void:
@@ -1278,6 +1475,14 @@ func _resolve_burn_status(target_id: int, status: Dictionary) -> void:
 			_log("灼烧判定掷出 %d：无事发生。" % die)
 		if phase == PHASE_GAME_OVER:
 			return
+
+
+func _resolve_ice_wind_status(actor_id: int) -> void:
+	var target_id = 1 - actor_id
+	_log("P%d 的冰风发动。" % [actor_id + 1])
+	_apply_damage(actor_id, target_id, 5, 10, "frost_swordsman_ice_wind_tick")
+	_add_cold(actor_id, target_id, 1)
+	_add_cold(actor_id, actor_id, 1)
 
 
 

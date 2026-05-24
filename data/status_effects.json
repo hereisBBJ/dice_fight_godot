@@ -30,6 +30,24 @@
     "description": "回合结束时若仍有中毒层数，则失去 5 点生命并令层数 -1。可通过净化行动消除全部中毒。"
   },
   {
+    "id": "cold",
+    "name": "寒冷",
+    "icon_path": "res://assets/status/cold.svg",
+    "description": "冰系技能施加的全局元素层数，可被寒潮等效果消耗。"
+  },
+  {
+    "id": "frost_tide",
+    "name": "寒潮",
+    "icon_path": "res://assets/status/frost_tide.svg",
+    "description": "持续期间，使用霜刺或冰风后可消耗目标 1 层寒冷进行追击。"
+  },
+  {
+    "id": "ice_wind",
+    "name": "冰风",
+    "icon_path": "res://assets/status/ice_wind.svg",
+    "description": "从后续回合开始持续发动：回合开始前造成伤害，并使双方各获得 1 层寒冷。"
+  },
+  {
     "id": "soul_bind",
     "name": "缚魂",
     "icon_path": "res://assets/status/soul_bind.svg",

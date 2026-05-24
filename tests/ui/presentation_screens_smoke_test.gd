@@ -18,10 +18,12 @@ func _init() -> void:
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/vampire/vampire_portrait.svg", Color.WHITE) is Texture2D, "vampire portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/stormcaller/stormcaller_portrait.svg", Color.WHITE) is Texture2D, "stormcaller portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/witch_doctor/witch_doctor.svg", Color.WHITE) is Texture2D, "witch doctor portrait should load as texture")
+	_expect(UIAssetsScript.texture_from_path("res://assets/characters/frost_swordsman/frost_swordsman.svg", Color.WHITE) is Texture2D, "frost swordsman portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/skills/arcanist/arcanist_storm.svg", Color.WHITE) is Texture2D, "arcanist storm icon should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/skills/vampire/vampire_blood_disaster.svg", Color.WHITE) is Texture2D, "vampire blood disaster icon should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/skills/stormcaller/stormcaller_judgement.svg", Color.WHITE) is Texture2D, "stormcaller judgement icon should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/skills/witch_doctor/witch_soul_bind.svg", Color.WHITE) is Texture2D, "witch doctor soul bind icon should load as texture")
+	_expect(UIAssetsScript.texture_from_path("res://assets/skills/frost_swordsman/frost_swordsman_ice_wind.svg", Color.WHITE) is Texture2D, "frost swordsman ice wind icon should load as texture")
 
 	main._on_start_local_requested()
 	await process_frame
@@ -47,6 +49,7 @@ func _init() -> void:
 	await _test_archer_battle_screen_mode_buttons()
 	await _test_stormcaller_battle_screen_resources_and_judgement()
 	await _test_witch_doctor_battle_screen_cleanse_and_statuses()
+	await _test_frost_swordsman_battle_screen_statuses()
 
 	if failures.is_empty():
 		print("PRESENTATION_SCREENS_SMOKE_TEST_OK")
@@ -195,6 +198,32 @@ func _test_witch_doctor_battle_screen_cleanse_and_statuses() -> void:
 	_expect(_status_tooltip_contains(screen.self_panel, "对已中毒目标使用技能时回复 5 MP"), "passive entry should reuse tooltip display for the full passive description")
 	_expect(_status_tooltip_contains(screen.self_panel, "当前有 2 层中毒"), "poison status tooltip should show stack-based description")
 	_expect(_status_tooltip_contains(screen.enemy_panel, "当前有 1 层缚魂"), "soul bind tooltip should render in the status row")
+	root.remove_child(screen)
+	screen.free()
+	network.free()
+	await process_frame
+
+
+func _test_frost_swordsman_battle_screen_statuses() -> void:
+	var battle = _make_battle("frost_swordsman", "swordsman")
+	battle.players[0].statuses.append({"id": "cold", "layers": 2, "source_id": 0})
+	battle.players[0].statuses.append({"id": "frost_tide", "duration": 2, "pending_decay": 0, "source_id": 0})
+	battle.players[0].statuses.append({"id": "ice_wind", "duration": 3, "pending_rounds": 1, "source_id": 0})
+	battle.players[0].dice = [6, 6, 3, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	var network = NetworkControllerScript.new()
+	network.bind_battle_state(battle)
+	network.start_local(battle)
+	var screen = BattleScreenScene.instantiate()
+	root.add_child(screen)
+	await process_frame
+	screen.setup(battle, network)
+	await process_frame
+	_expect(screen.self_character_portrait.texture != null, "frost swordsman battle portrait should render in battle screen")
+	_expect(_find_button_with_text(screen, "冰风") != null, "ice wind button should be present in battle screen")
+	_expect(_status_tooltip_contains(screen.self_panel, "当前有 2 层寒冷"), "cold status tooltip should render stack-based description")
+	_expect(_status_tooltip_contains(screen.self_panel, "寒潮强化剩余 2 回合"), "frost tide status tooltip should render remaining duration")
+	_expect(_status_tooltip_contains(screen.self_panel, "冰风将在 1 个回合开始阶段后发动"), "ice wind status tooltip should render delay description")
 	root.remove_child(screen)
 	screen.free()
 	network.free()

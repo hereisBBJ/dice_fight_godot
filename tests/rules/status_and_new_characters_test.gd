@@ -18,6 +18,10 @@ func _init() -> void:
 
 func _run() -> void:
 	_test_new_character_data_loads()
+	_test_frost_armor_thorns_adds_cold_on_full_shield_block()
+	_test_frost_thrust_bonus_requires_hp_damage()
+	_test_frost_tide_enables_pursuit_choice()
+	_test_ice_wind_applies_delayed_round_start_pressure()
 	_test_witch_poison_ticks_at_round_end()
 	_test_poison_round_end_only_consumes_one_total_layer()
 	_test_poison_can_be_cleansed_by_action()
@@ -83,11 +87,83 @@ func _test_new_character_data_loads() -> void:
 	_expect(battle.characters.has("arcanist"), "arcanist data should load")
 	_expect(battle.characters.has("vampire"), "vampire data should load")
 	_expect(battle.characters.has("stormcaller"), "stormcaller data should load")
+	_expect(battle.characters.has("frost_swordsman"), "frost swordsman data should load")
 	_expect(battle.character_augments.has("witch_doctor"), "witch doctor augments should load")
 	_expect(battle.character_augments.has("pyromancer"), "pyromancer augments should load")
 	_expect(battle.character_augments.has("arcanist"), "arcanist augments should load")
 	_expect(battle.character_augments.has("vampire"), "vampire augments should load")
 	_expect(battle.character_augments.has("stormcaller"), "stormcaller augments should load")
+	_expect(battle.character_augments.has("frost_swordsman"), "frost swordsman augments should load")
+
+
+func _test_frost_armor_thorns_adds_cold_on_full_shield_block() -> void:
+	var battle = _make_battle("frost_swordsman", "swordsman")
+	battle.players[0].shield = 20
+	battle._apply_damage(1, 0, 10, 10, "test_block")
+	_expect(int(battle._cold_layers(1)) == 1, "frost armor thorns should add 1 cold to the attacker when shield fully absorbs the hit")
+	_expect(int(battle.players[0].hp) == int(battle.players[0].max_hp), "frost armor thorns should only trigger when no HP is lost")
+
+
+func _test_frost_thrust_bonus_requires_hp_damage() -> void:
+	var battle = _make_battle("frost_swordsman", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].dice = [3, 3, 2, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	var hp_before = int(battle.players[1].hp)
+	_expect(battle.submit_skip(1), "second player should skip before frost thrust")
+	_expect(battle.submit_skill(0, "frost_swordsman_frost_thrust"), "frost swordsman should cast frost thrust")
+	_expect(int(battle.players[1].hp) == hp_before - 25, "frost thrust should deal bonus damage after causing HP loss")
+	_expect(int(battle._cold_layers(0)) == 1, "frost thrust should add 1 cold to self")
+	_expect(int(battle._cold_layers(1)) == 1, "frost thrust should add 1 cold to the target after HP damage")
+
+	battle = _make_battle("frost_swordsman", "swordsman")
+	battle.first_player_id = 0
+	battle.players[1].shield = 40
+	battle.players[0].dice = [3, 3, 2, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before blocked frost thrust")
+	_expect(battle.submit_skill(0, "frost_swordsman_frost_thrust"), "frost swordsman should cast frost thrust into shield")
+	_expect(int(battle._cold_layers(1)) == 0, "frost thrust should not add target cold when the main hit causes no HP loss")
+
+
+func _test_frost_tide_enables_pursuit_choice() -> void:
+	var battle = _make_battle("frost_swordsman", "swordsman")
+	battle.players[0].statuses.append({"id": "frost_tide", "duration": 2, "pending_decay": 0, "source_id": 0})
+	battle._add_cold(0, 1, 2)
+	battle.first_player_id = 0
+	battle.players[0].dice = [3, 3, 2, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before frost tide pursuit")
+	_expect(battle.submit_skill(0, "frost_swordsman_frost_thrust"), "frost swordsman should cast frost thrust during frost tide")
+	_expect(String(battle.pending_interactive_request.get("kind", "")) == "effect_choice", "frost tide should open the generic effect choice interaction")
+	_expect(battle.interactive_select_option("gain_shield"), "frost swordsman should be able to choose the shield pursuit option")
+	_expect(int(battle.players[0].shield) == 10, "shield pursuit should grant 10 shield")
+	_expect(int(battle._cold_layers(1)) == 2, "pursuit should consume one layer of target cold after frost thrust adds one more")
+
+
+func _test_ice_wind_applies_delayed_round_start_pressure() -> void:
+	var battle = _make_battle("frost_swordsman", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].mp = 40
+	battle.players[0].dice = [6, 6, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	var hp_before = int(battle.players[1].hp)
+	_expect(battle.submit_skip(1), "second player should skip before ice wind")
+	_expect(battle.submit_skill(0, "frost_swordsman_ice_wind"), "frost swordsman should cast ice wind")
+	_expect(int(battle.players[1].hp) == hp_before, "ice wind should not deal damage on the cast round")
+	_expect(_has_status(battle, 0, "ice_wind"), "ice wind should create a delayed status on the caster")
+
+	battle.players[0].dice = [1, 1, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(0), "caster should skip to advance ice wind")
+	_expect(battle.submit_skip(1), "opponent should skip to advance ice wind")
+	_expect(int(battle.players[1].hp) == hp_before - 5, "ice wind should deal 5 damage when it starts ticking")
+	_expect(int(battle._cold_layers(0)) >= 1, "ice wind should add cold to the caster when it triggers")
+	_expect(int(battle._cold_layers(1)) >= 1, "ice wind should add cold to the target when it triggers")
+	battle.players[0].dice = [1, 1, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(0), "caster should skip again so ice wind can trigger")
+	_expect(battle.submit_skip(1), "opponent should skip again so ice wind can trigger")
 
 
 func _test_witch_poison_ticks_at_round_end() -> void:

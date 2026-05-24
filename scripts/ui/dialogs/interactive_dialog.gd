@@ -37,6 +37,9 @@ func setup(new_battle, new_network_controller) -> void:
 	if kind == "skill_disable_select":
 		_setup_skill_disable_select(request, can_control)
 		return
+	if kind == "effect_choice":
+		_setup_effect_choice(request, can_control)
+		return
 	var title = "射击闪避判定" if kind == "shot_evasion" else "后跳判定"
 	var die = int(request.get("die", 1))
 	title_label.text = "%s：P%d 掷出 %d" % [title, responder_id + 1, die]
@@ -86,6 +89,27 @@ func _setup_skill_disable_select(request: Dictionary, can_control: bool) -> void
 			interactive_command.emit(responder_id, {
 				"type": "interactive_select_skill",
 				"skill_id": selected_skill_id
+			})
+		)
+		actions_row.add_child(button)
+
+
+func _setup_effect_choice(request: Dictionary, can_control: bool) -> void:
+	title_label.text = String(request.get("title", "效果选择"))
+	description_label.text = String(request.get("description", "请选择一项效果。"))
+	accept_button.visible = false
+	reroll_button.visible = false
+	value_spin.visible = false
+	modify_button.visible = false
+	for option in request.get("options", []):
+		var button = Button.new()
+		button.text = String(option.get("label", option.get("id", "选项")))
+		button.tooltip_text = String(option.get("description", ""))
+		button.disabled = not can_control
+		button.pressed.connect(func(selected_option_id := String(option.get("id", ""))):
+			interactive_command.emit(responder_id, {
+				"type": "interactive_select_option",
+				"option_id": selected_option_id
 			})
 		)
 		actions_row.add_child(button)
