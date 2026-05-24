@@ -17,9 +17,11 @@ func _init() -> void:
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/arcanist/arcanist_portrait.svg", Color.WHITE) is Texture2D, "arcanist portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/vampire/vampire_portrait.svg", Color.WHITE) is Texture2D, "vampire portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/characters/stormcaller/stormcaller_portrait.svg", Color.WHITE) is Texture2D, "stormcaller portrait should load as texture")
+	_expect(UIAssetsScript.texture_from_path("res://assets/characters/witch_doctor/witch_doctor.svg", Color.WHITE) is Texture2D, "witch doctor portrait should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/skills/arcanist/arcanist_storm.svg", Color.WHITE) is Texture2D, "arcanist storm icon should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/skills/vampire/vampire_blood_disaster.svg", Color.WHITE) is Texture2D, "vampire blood disaster icon should load as texture")
 	_expect(UIAssetsScript.texture_from_path("res://assets/skills/stormcaller/stormcaller_judgement.svg", Color.WHITE) is Texture2D, "stormcaller judgement icon should load as texture")
+	_expect(UIAssetsScript.texture_from_path("res://assets/skills/witch_doctor/witch_soul_bind.svg", Color.WHITE) is Texture2D, "witch doctor soul bind icon should load as texture")
 
 	main._on_start_local_requested()
 	await process_frame
@@ -44,6 +46,7 @@ func _init() -> void:
 	await _test_vampire_battle_screen_assets_and_buttons()
 	await _test_archer_battle_screen_mode_buttons()
 	await _test_stormcaller_battle_screen_resources_and_judgement()
+	await _test_witch_doctor_battle_screen_cleanse_and_statuses()
 
 	if failures.is_empty():
 		print("PRESENTATION_SCREENS_SMOKE_TEST_OK")
@@ -165,6 +168,33 @@ func _test_stormcaller_battle_screen_resources_and_judgement() -> void:
 	_expect(_status_tooltip_contains(screen.enemy_panel, "技能额外消耗 20 MP。"), "enemy static cage tooltip should show the first-player variant")
 	if judgement_button != null:
 		_expect(not judgement_button.disabled, "judgement should be enabled when 3 thunder seals allow ignoring one requirement")
+	root.remove_child(screen)
+	screen.free()
+	network.free()
+	await process_frame
+
+
+func _test_witch_doctor_battle_screen_cleanse_and_statuses() -> void:
+	var battle = _make_battle("witch_doctor", "swordsman")
+	battle.first_player_id = 0
+	battle.players[0].mp = 40
+	battle.players[0].statuses.append({"id": "poison", "layers": 2, "source_id": 1})
+	battle.players[1].statuses.append({"id": "soul_bind", "layers": 1, "source_id": 0})
+	battle.players[0].dice = [3, 2, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	var network = NetworkControllerScript.new()
+	network.bind_battle_state(battle)
+	network.start_local(battle)
+	var screen = BattleScreenScene.instantiate()
+	root.add_child(screen)
+	await process_frame
+	screen.setup(battle, network)
+	await process_frame
+	_expect(_find_button_with_text(screen, "净化 10 MP") != null, "poisoned player should see the cleanse action button")
+	_expect(_status_tooltip_contains(screen.self_panel, "咒毒共鸣"), "passive entry should be visible in the status row")
+	_expect(_status_tooltip_contains(screen.self_panel, "对已中毒目标使用技能时回复 5 MP"), "passive entry should reuse tooltip display for the full passive description")
+	_expect(_status_tooltip_contains(screen.self_panel, "当前有 2 层中毒"), "poison status tooltip should show stack-based description")
+	_expect(_status_tooltip_contains(screen.enemy_panel, "当前有 1 层缚魂"), "soul bind tooltip should render in the status row")
 	root.remove_child(screen)
 	screen.free()
 	network.free()

@@ -18,8 +18,12 @@ func _init() -> void:
 
 func _run() -> void:
 	_test_new_character_data_loads()
-	_test_poison_ticks_at_round_start()
-	_test_life_drain_heals_actual_life_damage()
+	_test_witch_poison_ticks_at_round_end()
+	_test_poison_round_end_only_consumes_one_total_layer()
+	_test_poison_can_be_cleansed_by_action()
+	_test_witch_soul_bind_disables_selected_skill()
+	_test_witch_corruption_extract_converts_poison_to_mp_and_shield()
+	_test_witch_recovery_drains_mp_and_deals_bonus_damage()
 	_test_burn_layers_clear_at_round_start()
 	_test_fire_shield_reflects_burn_on_break()
 	_test_pyromancer_rebirth_prevents_first_death()
@@ -86,26 +90,97 @@ func _test_new_character_data_loads() -> void:
 	_expect(battle.character_augments.has("stormcaller"), "stormcaller augments should load")
 
 
-func _test_poison_ticks_at_round_start() -> void:
+func _test_witch_poison_ticks_at_round_end() -> void:
 	var battle = _make_battle("witch_doctor", "swordsman")
 	battle.first_player_id = 0
-	battle.players[0].dice = [6, 5, 4, 1]
+	battle.players[0].dice = [3, 2, 1, 1]
 	battle.players[1].dice = [1, 1, 1, 1]
 	var hp_before = int(battle.players[1].hp)
 	_expect(battle.submit_skip(1), "second player should skip")
-	_expect(battle.submit_skill(0, "witch_poison_bottle"), "witch doctor should use poison bottle")
-	_expect(int(battle.players[1].hp) <= hp_before - 20, "poison bottle should deal hit damage and a poison tick by next round start")
+	_expect(battle.submit_skill(0, "witch_poison_mark"), "witch doctor should use poison mark")
+	_expect(int(battle.players[1].hp) == hp_before - 10, "poison mark should deal 5 damage and poison should tick for 5 at round end")
+	_expect(not _has_status(battle, 1, "poison"), "single-layer poison should decay away after round-end tick")
 
 
-func _test_life_drain_heals_actual_life_damage() -> void:
+func _test_poison_round_end_only_consumes_one_total_layer() -> void:
+	var battle = _make_battle("witch_doctor", "swordsman")
+	battle.players[1].statuses.append({
+		"id": "poison",
+		"duration": 0,
+		"value": 5,
+		"layers": 2,
+		"source_id": 0
+	})
+	battle.players[1].statuses.append({
+		"id": "poison",
+		"duration": 0,
+		"value": 5,
+		"layers": 1,
+		"source_id": 1
+	})
+	var hp_before = int(battle.players[1].hp)
+	battle._resolve_round_end_statuses()
+	_expect(int(battle.players[1].hp) == hp_before - 5, "poison should only tick once per round regardless of stacked poison entries")
+	_expect(int(battle._poison_layers(1)) == 2, "round-end poison decay should only remove one total layer")
+
+
+func _test_poison_can_be_cleansed_by_action() -> void:
+	var battle = _make_battle("witch_doctor", "swordsman")
+	battle.players[0].mp = 40
+	battle._add_poison(1, 0, 3)
+	battle.players[0].dice = [1, 1, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before cleanse")
+	_expect(battle.submit_cleanse(0), "poisoned player should be able to use cleanse action")
+	_expect(not _has_status(battle, 0, "poison"), "cleanse should remove all poison layers")
+	_expect(int(battle.players[0].mp) == 25, "cleanse should cost 5 MP per poison layer")
+
+
+func _test_witch_soul_bind_disables_selected_skill() -> void:
 	var battle = _make_battle("witch_doctor", "swordsman")
 	battle.first_player_id = 0
-	battle.players[0].hp = 40
-	battle.players[0].dice = [5, 3, 2, 1]
+	battle._add_poison(0, 1, 2)
+	battle.players[0].dice = [6, 3, 1, 1]
 	battle.players[1].dice = [1, 1, 1, 1]
-	_expect(battle.submit_skip(1), "second player should skip before life drain")
-	_expect(battle.submit_skill(0, "witch_life_drain"), "witch doctor should use life drain")
-	_expect(int(battle.players[0].hp) > 40, "life drain should heal when life damage is dealt")
+	_expect(battle.submit_skip(1), "second player should skip before soul bind")
+	_expect(battle.submit_skill(0, "witch_soul_bind"), "witch doctor should cast soul bind")
+	_expect(String(battle.pending_interactive_request.get("kind", "")) == "witch_hex", "soul bind should enter interactive hex judgment")
+	_expect(battle.interactive_modify(6), "witch doctor should be able to modify hex die to 6")
+	_expect(battle.interactive_accept(), "witch doctor should accept the modified hex result")
+	_expect(String(battle.pending_interactive_request.get("kind", "")) == "skill_disable_select", "bound target should trigger skill selection at next round start")
+	_expect(battle.interactive_select_skill("swordsman_finish"), "witch doctor should select a disabled skill")
+	battle.players[1].dice = [6, 6, 1, 1]
+	var blocked_skill = battle.get_skill(1, "swordsman_finish")
+	_expect(String(battle.get_skill_block_reason(1, blocked_skill)) == "本回合被缚魂禁用", "selected skill should be blocked for the turn")
+
+
+func _test_witch_corruption_extract_converts_poison_to_mp_and_shield() -> void:
+	var battle = _make_battle("witch_doctor", "swordsman")
+	battle.first_player_id = 0
+	battle._add_poison(0, 1, 4)
+	battle.players[0].mp = 20
+	battle.players[0].dice = [6, 3, 1, 1]
+	battle.players[1].dice = [1, 1, 1, 1]
+	_expect(battle.submit_skip(1), "second player should skip before corruption extract")
+	_expect(battle.submit_skill(0, "witch_corruption_extract"), "witch doctor should cast corruption extract")
+	_expect(int(battle.players[0].mp) == 20, "corruption extract should recover 10 MP plus 5 MP from the passive after paying 15 MP cost")
+	_expect(int(battle.players[0].shield) == 10, "corruption extract should grant shield from poison extraction")
+	_expect(int(battle._poison_layers(1)) == 1, "corruption extract should remove half of the target poison layers before round-end poison decay")
+
+
+func _test_witch_recovery_drains_mp_and_deals_bonus_damage() -> void:
+	var battle = _make_battle("witch_doctor", "swordsman")
+	battle.first_player_id = 0
+	battle._add_poison(0, 1, 2)
+	battle._add_soul_bind(0, 1, 1)
+	battle.players[0].dice = [3, 3, 2, 1]
+	battle.players[1].dice = [6, 6, 1, 1]
+	battle.players[1].mp = 30
+	var hp_before = int(battle.players[1].hp)
+	_expect(battle.submit_skill(1, "swordsman_finish"), "second player should queue finish before recovery")
+	_expect(battle.submit_skill(0, "witch_recovery"), "witch doctor should cast recovery as first player")
+	_expect(int(battle.players[1].mp) == 15, "recovery should drain 15 MP based on the removed marks")
+	_expect(int(battle.players[1].hp) == hp_before - 15, "first-player recovery should deal bonus damage when it breaks the queued skill")
 
 
 func _test_burn_layers_clear_at_round_start() -> void:

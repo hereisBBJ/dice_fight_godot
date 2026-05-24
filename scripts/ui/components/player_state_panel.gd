@@ -110,16 +110,32 @@ func _set_bar(bar: ProgressBar, label: String, value: int, maximum: int, color: 
 func _render_statuses(player: Dictionary, status_data: Dictionary) -> void:
 	for child in status_row.get_children():
 		child.queue_free()
+	var passive: Dictionary = player.get("character", {}).get("passive", {})
+	if not passive.is_empty():
+		var passive_badge = Button.new()
+		passive_badge.text = "被动: %s" % String(passive.get("name", "未命名被动"))
+		passive_badge.tooltip_text = "%s\n%s" % [
+			String(passive.get("name", "未命名被动")),
+			String(passive.get("description", ""))
+		]
+		passive_badge.flat = true
+		passive_badge.focus_mode = Control.FOCUS_NONE
+		passive_badge.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		passive_badge.add_theme_color_override("font_color", Color(0.98, 0.83, 0.42))
+		passive_badge.add_theme_color_override("font_hover_color", Color(1.0, 0.90, 0.55))
+		passive_badge.add_theme_color_override("font_pressed_color", Color(0.98, 0.83, 0.42))
+		status_row.add_child(passive_badge)
 	var statuses: Array = player.get("statuses", []).duplicate(true)
 	if bool(player.get("per_game_flags", {}).get("eagle_eye", false)):
 		statuses.append({"id": "eagle_eye"})
 	if bool(player.get("per_game_flags", {}).get("flame_tide", false)):
 		statuses.append({"id": "flame_tide"})
 	if statuses.is_empty():
-		var label = Label.new()
-		label.text = "无状态"
-		label.modulate = Color(0.62, 0.65, 0.72)
-		status_row.add_child(label)
+		if passive.is_empty():
+			var label = Label.new()
+			label.text = "无状态"
+			label.modulate = Color(0.62, 0.65, 0.72)
+			status_row.add_child(label)
 		return
 	for status in statuses:
 		var icon = StatusIconScene.instantiate()

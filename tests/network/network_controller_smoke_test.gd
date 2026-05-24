@@ -31,6 +31,20 @@ func _init() -> void:
 	_expect(not _logs_contain(p2_snapshot.logs, "P1 提交技能"), "p2 snapshot should hide p1 submitted skill log")
 	_expect(_logs_contain(p2_snapshot.logs, "P2 提交技能"), "p2 snapshot should keep own submitted skill log")
 
+	battle.pending_interactive_request = {
+		"kind": "skill_disable_select",
+		"responder_id": 0,
+		"actor_id": 0,
+		"target_id": 1,
+		"remaining_count": 1,
+		"selected_skill_ids": [],
+		"candidate_skill_ids": ["archer_shot"]
+	}
+	var p1_interactive_snapshot = network._snapshot_for_player(0)
+	var p2_interactive_snapshot = network._snapshot_for_player(1)
+	_expect(not p1_interactive_snapshot.pending_interactive_request.is_empty(), "responder snapshot should keep interactive request")
+	_expect(p2_interactive_snapshot.pending_interactive_request.is_empty(), "non-responder snapshot should hide interactive request")
+
 	if failures.is_empty():
 		print("NETWORK_CONTROLLER_SMOKE_TEST_OK")
 		quit(0)

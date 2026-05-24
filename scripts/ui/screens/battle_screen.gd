@@ -283,6 +283,14 @@ func _render_tools(column: VBoxContainer, player_id: int) -> void:
 		player_command.emit(player_id, {"type": "skip_turn"})
 	)
 	tools.add_child(skip)
+	if battle.get_poison_cleanse_cost(player_id) > 0:
+		var cleanse = Button.new()
+		cleanse.text = "净化 %d MP" % battle.get_poison_cleanse_cost(player_id)
+		cleanse.disabled = player.mp < battle.get_poison_cleanse_cost(player_id)
+		cleanse.pressed.connect(func():
+			player_command.emit(player_id, {"type": "cleanse_poison"})
+		)
+		tools.add_child(cleanse)
 
 
 func _add_skill_buttons(parent: GridContainer, player_id: int, skill: Dictionary) -> void:

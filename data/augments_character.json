@@ -37,19 +37,19 @@
   ],
   "witch_doctor": [
     {
-      "id": "poison_bottle_concentrate",
-      "name": "毒瓶浓缩",
-      "description": "剧毒药瓶伤害 +10。",
+      "id": "epidemic_amplifier",
+      "name": "疫病放大",
+      "description": "疫毒标记伤害 +10。",
       "effect": "skill_damage_bonus",
-      "target_skill": "witch_poison_bottle",
+      "target_skill": "witch_poison_mark",
       "amount": 10
     },
     {
-      "id": "greedy_drain",
-      "name": "贪婪汲取",
-      "description": "生命吸取伤害 +10。",
-      "effect": "skill_damage_bonus",
-      "target_skill": "witch_life_drain",
+      "id": "corruption_shell",
+      "name": "腐败外壳",
+      "description": "腐败抽取获得护盾 +10。",
+      "effect": "skill_shield_bonus",
+      "target_skill": "witch_corruption_extract",
       "amount": 10
     }
   ],

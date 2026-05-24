@@ -27,7 +27,13 @@
     "id": "poison",
     "name": "中毒",
     "icon_path": "res://assets/status/poison.svg",
-    "description": "回合开始时受到 5 点直接生命损失，持续 3 回合。"
+    "description": "回合结束时若仍有中毒层数，则失去 5 点生命并令层数 -1。可通过净化行动消除全部中毒。"
+  },
+  {
+    "id": "soul_bind",
+    "name": "缚魂",
+    "icon_path": "res://assets/status/soul_bind.svg",
+    "description": "若仍带有中毒，则回合开始时由施加者选择同等数量的技能在本回合无法使用。"
   },
   {
     "id": "burn",

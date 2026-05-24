@@ -24,7 +24,9 @@ func _status_label(display_name: String, status: Dictionary) -> String:
 	if status_id == "burn":
 		return "%s x%d" % [display_name, int(status.get("layers", 1))]
 	if status_id == "poison":
-		return "%s %d" % [display_name, int(status.get("duration", 1))]
+		return "%s x%d" % [display_name, int(status.get("layers", 1))]
+	if status_id == "soul_bind":
+		return "%s x%d" % [display_name, int(status.get("layers", 1))]
 	return display_name
 
 
@@ -42,6 +44,10 @@ func _status_description(status: Dictionary, fallback: String) -> String:
 		if pending_adjust_cost > 0:
 			return "下回合开始时生效：技能额外消耗 %d MP，且第一次重投或改点额外消耗 %d MP。" % [pending_skill_cost, pending_adjust_cost]
 		return "下回合开始时生效：技能额外消耗 %d MP。" % pending_skill_cost
+	if status_id == "poison":
+		return "当前有 %d 层中毒。回合结束时失去 5 点生命，之后层数减 1；可用净化行动清除全部中毒。" % int(status.get("layers", 1))
+	if status_id == "soul_bind":
+		return "当前有 %d 层缚魂。若仍带有中毒，回合开始时对方可指定同等数量的技能本回合无法使用。" % int(status.get("layers", 1))
 	return fallback
 
 
@@ -57,6 +63,8 @@ func _status_color(status_id: String) -> Color:
 			return Color(0.33, 0.72, 0.42)
 		"poison":
 			return Color(0.55, 0.35, 0.80)
+		"soul_bind":
+			return Color(0.44, 0.22, 0.70)
 		"burn":
 			return Color(0.88, 0.28, 0.18)
 		"fire_shield":

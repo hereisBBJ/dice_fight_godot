@@ -14,6 +14,7 @@ const PHASE_GAME_OVER = "game_over"
 const ACTION_NONE = "none"
 const ACTION_SKILL = "skill"
 const ACTION_SKIP = "skip"
+const ACTION_CLEANSE = "cleanse"
 
 var characters: Dictionary = {}
 var common_augments: Array = []
@@ -227,6 +228,7 @@ func _begin_round(carry_last_turn: bool) -> void:
 			"used_skill": false,
 			"used_attack_skill": false,
 			"attack_skill_locked": bool(player.per_game_flags.get("attack_skill_lock_pending", false)),
+			"disabled_skill_ids": [],
 			"first_attack_bonus_used": false,
 			"end_mp_refund": 0,
 			"last_effect_hp_damage": 0,
@@ -242,6 +244,8 @@ func _begin_round(carry_last_turn: bool) -> void:
 		players[player_id] = player
 	_log("第 %d 回合开始。P%d 先手，P%d 后手。" % [round_num, first_player_id + 1, _second_player_id() + 1])
 	_resolve_round_start_statuses()
+	if phase == PHASE_INTERACTIVE:
+		return
 	_check_game_over()
 
 
@@ -325,6 +329,20 @@ func submit_skip(player_id: int) -> bool:
 	return true
 
 
+func submit_cleanse(player_id: int) -> bool:
+	if phase != PHASE_BATTLE or not _valid_player(player_id) or not players[player_id].submitted_action.is_empty():
+		return false
+	if not can_cleanse_poison(player_id):
+		_log("P%d 当前无法进行净化。" % [player_id + 1])
+		return false
+	var action = {"type": ACTION_CLEANSE}
+	players[player_id].submitted_action = action
+	pending_actions[player_id] = action
+	_log("P%d 选择净化中毒。" % [player_id + 1])
+	_try_resolve_turn()
+	return true
+
+
 func submit_skill(player_id: int, skill_id: String, modes: Array = []) -> bool:
 	if phase != PHASE_BATTLE or not _valid_player(player_id) or not players[player_id].submitted_action.is_empty():
 		return false
@@ -380,6 +398,9 @@ func _execute_action(actor_id: int) -> bool:
 	if String(action.type) == ACTION_SKIP:
 		_resolve_skip(actor_id)
 		return true
+	if String(action.type) == ACTION_CLEANSE:
+		_resolve_cleanse(actor_id)
+		return true
 	if String(action.type) != ACTION_SKILL:
 		return true
 	var skill = get_skill(actor_id, String(action.skill_id))
@@ -400,6 +421,7 @@ func _execute_action(actor_id: int) -> bool:
 	players[actor_id].per_turn_flags.last_skill_precast_mp = precast_mp
 	players[actor_id].per_turn_flags.last_skill_spent_mp = cost
 	players[actor_id].per_turn_flags.last_skill_id = String(skill.id)
+	_trigger_passive_on_skill_target_status(actor_id, 1 - actor_id)
 	if _skill_is_attack(skill):
 		players[actor_id].per_turn_flags.used_attack_skill = true
 		_record_presentation_event(actor_id, skill)
@@ -429,6 +451,19 @@ func _resolve_skip(player_id: int) -> void:
 	_trigger_passive_on_skip_recover(player_id)
 
 
+func _resolve_cleanse(player_id: int) -> void:
+	var cost = get_poison_cleanse_cost(player_id)
+	if cost <= 0:
+		_log("P%d 没有中毒层数，净化失败。" % [player_id + 1])
+		return
+	if players[player_id].mp < cost:
+		_log("P%d MP 不足，无法净化中毒。" % [player_id + 1])
+		return
+	players[player_id].mp -= cost
+	var removed = _clear_poison(player_id)
+	_log("P%d 消耗 %d MP，清除了 %d 层中毒。" % [player_id + 1, cost, removed])
+
+
 func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes: Array) -> bool:
 	var target_id = 1 - actor_id
 	match String(effect.type):
@@ -436,6 +471,16 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 			var amount = _modified_damage(actor_id, skill, _effect_amount(effect, modes, int(effect.amount)))
 			var result = _apply_damage(actor_id, target_id, amount, 10, String(skill.id), effect)
 			players[actor_id].per_turn_flags.last_effect_hp_damage = int(result.get("hp_damage", 0))
+		"poison_strike":
+			var poison_layers = _poison_layers(target_id)
+			var amount = int(effect.get("base_damage", 0))
+			var add_layers = int(effect.get("base_layers", 1))
+			if poison_layers > 0:
+				amount = int(effect.get("poisoned_damage", amount))
+				add_layers = int(effect.get("poisoned_layers", add_layers))
+			var result = _apply_damage(actor_id, target_id, _modified_damage(actor_id, skill, amount), 10, String(skill.id), effect)
+			players[actor_id].per_turn_flags.last_effect_hp_damage = int(result.get("hp_damage", 0))
+			_add_poison(actor_id, target_id, add_layers)
 		"shield":
 			var amount = _modified_shield_gain(actor_id, skill, int(effect.amount))
 			_gain_shield(actor_id, amount)
@@ -500,6 +545,20 @@ func _resolve_effect(actor_id: int, skill: Dictionary, effect: Dictionary, modes
 		"add_status":
 			var status_target = target_id if String(effect.get("target", "self")) == "enemy" else actor_id
 			_add_status(status_target, String(effect.status_id), int(effect.get("duration", 1)), int(effect.get("value", 0)), actor_id)
+		"witch_hex":
+			_start_interactive("witch_hex", actor_id, actor_id, target_id, 0, 0, String(skill.id))
+			return false
+		"poison_extract":
+			var total_poison = _poison_layers(target_id)
+			if total_poison <= 0:
+				_log("P%d 没有可抽取的中毒层数。" % [target_id + 1])
+			else:
+				var gain_units = int(ceil(float(total_poison) / 2.0))
+				_gain_mp(actor_id, gain_units * int(effect.get("mp_per_unit", 5)))
+				_gain_shield(actor_id, gain_units * int(effect.get("shield_per_unit", 5)))
+				_spend_poison_layers(target_id, int(floor(float(total_poison) / 2.0)))
+		"purge_marks":
+			_resolve_purge_marks(actor_id, target_id)
 		"static_cage":
 			var skill_cost_bonus = int(effect.get("second_amount", effect.get("amount", 0)))
 			var adjust_bonus = int(effect.get("second_adjust_bonus", effect.get("adjust_bonus", 0)))
@@ -628,6 +687,20 @@ func _trigger_passive_on_skip_recover(player_id: int) -> void:
 			_log("P%d 触发雷霆积蓄。" % [player_id + 1])
 
 
+func _trigger_passive_on_skill_target_status(actor_id: int, target_id: int) -> void:
+	if not _valid_player(actor_id) or not _valid_player(target_id):
+		return
+	var passive_id = String(players[actor_id].character.get("passive", {}).get("id", ""))
+	if passive_id != "curse_poison_resonance":
+		return
+	if _poison_layers(target_id) <= 0:
+		return
+	if _curse_layers(target_id, actor_id) > 0:
+		_gain_mp(actor_id, 10)
+	else:
+		_gain_mp(actor_id, 5)
+
+
 func _trigger_passive_on_take_damage(player_id: int, hp_lost: int, source_id: int, reason: String) -> void:
 	if not _valid_player(player_id) or hp_lost <= 0:
 		return
@@ -657,8 +730,35 @@ func _start_interactive(kind: String, responder_id: int, actor_id: int, target_i
 		"skill_id": skill_id
 	}
 	_interactive_context = pending_interactive_request.duplicate(true)
-	var label = "射击闪避" if kind == "shot_evasion" else "后跳判定"
+	var label = "射击闪避"
+	if kind == "backstep":
+		label = "后跳判定"
+	elif kind == "witch_hex":
+		label = "缚魂咒判定"
 	_log("%s：P%d 掷出 %d，可接受、重掷或修改。" % [label, responder_id + 1, die])
+
+
+func _start_skill_disable_selection(source_id: int, target_id: int, remaining_count: int, selected_skill_ids: Array = []) -> void:
+	var candidate_skill_ids: Array = []
+	for skill in players[target_id].character.get("skills", []):
+		var skill_id = String(skill.get("id", ""))
+		if selected_skill_ids.has(skill_id):
+			continue
+		candidate_skill_ids.append(skill_id)
+	if candidate_skill_ids.is_empty():
+		return
+	phase = PHASE_INTERACTIVE
+	pending_interactive_request = {
+		"kind": "skill_disable_select",
+		"responder_id": source_id,
+		"actor_id": source_id,
+		"target_id": target_id,
+		"remaining_count": remaining_count,
+		"selected_skill_ids": selected_skill_ids.duplicate(),
+		"candidate_skill_ids": candidate_skill_ids.duplicate()
+	}
+	_interactive_context = pending_interactive_request.duplicate(true)
+	_log("P%d 需要为 P%d 选择本回合不可用的技能。" % [source_id + 1, target_id + 1])
 
 
 func interactive_accept() -> bool:
@@ -703,10 +803,21 @@ func interactive_modify(value: int) -> bool:
 	return true
 
 
+func interactive_select_skill(skill_id: String) -> bool:
+	if phase != PHASE_INTERACTIVE or String(pending_interactive_request.get("kind", "")) != "skill_disable_select":
+		return false
+	var candidates: Array = pending_interactive_request.get("candidate_skill_ids", [])
+	if not candidates.has(skill_id):
+		return false
+	_interactive_context.selected_skill_id = skill_id
+	_apply_interactive_result()
+	return true
+
+
 func _apply_interactive_result() -> void:
 	var kind = String(_interactive_context.kind)
-	var die = int(_interactive_context.die)
 	if kind == "shot_evasion":
+		var die = int(_interactive_context.die)
 		var dodged = die % 2 == 0
 		if dodged:
 			_log("P%d 闪避成功，射击没有造成伤害。" % [int(_interactive_context.responder_id) + 1])
@@ -714,6 +825,7 @@ func _apply_interactive_result() -> void:
 			_log("P%d 闪避失败。" % [int(_interactive_context.responder_id) + 1])
 			_apply_damage(int(_interactive_context.actor_id), int(_interactive_context.target_id), int(_interactive_context.damage), int(_interactive_context.break_life_damage), String(_interactive_context.skill_id))
 	elif kind == "backstep":
+		var die = int(_interactive_context.die)
 		var actor_id = int(_interactive_context.actor_id)
 		var success = die % 2 == 0
 		if bool(players[actor_id].per_game_flags.get("eagle_eye", false)):
@@ -724,12 +836,44 @@ func _apply_interactive_result() -> void:
 		else:
 			players[actor_id].per_turn_flags.end_mp_refund = int(players[actor_id].per_turn_flags.get("end_mp_refund", 0)) + 10
 			_log("P%d 后跳失败，回合末返还 10 MP。" % [actor_id + 1])
+	elif kind == "witch_hex":
+		var die = int(_interactive_context.die)
+		var actor_id = int(_interactive_context.actor_id)
+		var target_id = int(_interactive_context.target_id)
+		if _disabled_skill_count(target_id, actor_id) >= 2:
+			_add_poison(actor_id, target_id, 4)
+		elif die <= 3:
+			_add_poison(actor_id, target_id, 3)
+		else:
+			_add_soul_bind(actor_id, target_id, 1)
+	elif kind == "skill_disable_select":
+		var source_id = int(_interactive_context.actor_id)
+		var target_id = int(_interactive_context.target_id)
+		var skill_id = String(_interactive_context.get("selected_skill_id", ""))
+		if not skill_id.is_empty():
+			var disabled_skills: Array = players[target_id].per_turn_flags.get("disabled_skill_ids", [])
+			disabled_skills = disabled_skills.duplicate()
+			disabled_skills.append(skill_id)
+			players[target_id].per_turn_flags.disabled_skill_ids = disabled_skills
+			_log("P%d 选择使 P%d 的 %s 本回合无法使用。" % [source_id + 1, target_id + 1, get_skill(target_id, skill_id).get("name", skill_id)])
+		var remaining_count = int(_interactive_context.get("remaining_count", 1)) - 1
+		var selected_skill_ids: Array = _interactive_context.get("selected_skill_ids", []).duplicate()
+		if not skill_id.is_empty():
+			selected_skill_ids.append(skill_id)
+		pending_interactive_request = {}
+		_interactive_context = {}
+		if remaining_count > 0:
+			_start_skill_disable_selection(source_id, target_id, remaining_count, selected_skill_ids)
+			return
 	pending_interactive_request = {}
 	_interactive_context = {}
 	if phase != PHASE_GAME_OVER:
-		phase = PHASE_RESOLVING
-		_resolution_index += 1
-		_continue_resolution()
+		if kind in ["shot_evasion", "backstep", "witch_hex"]:
+			phase = PHASE_RESOLVING
+			_resolution_index += 1
+			_continue_resolution()
+		else:
+			phase = PHASE_BATTLE
 
 
 func _apply_damage(attacker: int, target: int, amount: int, break_life_damage: int, skill_id: String, effect: Dictionary = {}) -> Dictionary:
@@ -874,6 +1018,174 @@ func _add_status(player_id: int, status_id: String, duration: int, value: int, s
 	_log("P%d 获得状态：%s。" % [player_id + 1, get_status_name(status_id)])
 
 
+func _add_poison(source_id: int, target_id: int, layers: int) -> void:
+	if layers <= 0:
+		return
+	for index in range(players[target_id].statuses.size()):
+		var status: Dictionary = players[target_id].statuses[index]
+		if String(status.id) == "poison" and int(status.get("source_id", -1)) == source_id:
+			players[target_id].statuses[index].layers = int(status.get("layers", 0)) + layers
+			_log("P%d 获得 %d 层中毒（共 %d 层）。" % [target_id + 1, layers, int(players[target_id].statuses[index].layers)])
+			return
+	players[target_id].statuses.append({
+		"id": "poison",
+		"duration": 0,
+		"value": 5,
+		"layers": layers,
+		"source_id": source_id
+	})
+	_log("P%d 获得 %d 层中毒。" % [target_id + 1, layers])
+
+
+func _add_soul_bind(source_id: int, target_id: int, layers: int) -> void:
+	if layers <= 0:
+		return
+	for index in range(players[target_id].statuses.size()):
+		var status: Dictionary = players[target_id].statuses[index]
+		if String(status.id) == "soul_bind" and int(status.get("source_id", -1)) == source_id:
+			players[target_id].statuses[index].layers = min(2, int(status.get("layers", 0)) + layers)
+			_log("P%d 的缚魂层数变为 %d。" % [target_id + 1, int(players[target_id].statuses[index].layers)])
+			return
+	players[target_id].statuses.append({
+		"id": "soul_bind",
+		"duration": 0,
+		"value": 0,
+		"layers": min(2, layers),
+		"source_id": source_id
+	})
+	_log("P%d 获得缚魂。" % [target_id + 1])
+
+
+func _poison_layers(player_id: int, source_id: int = -999) -> int:
+	var total = 0
+	for status in players[player_id].statuses:
+		if String(status.get("id", "")) != "poison":
+			continue
+		if source_id != -999 and int(status.get("source_id", -1)) != source_id:
+			continue
+		total += int(status.get("layers", 0))
+	return total
+
+
+func _curse_layers(player_id: int, source_id: int = -999) -> int:
+	var total = 0
+	for status in players[player_id].statuses:
+		if String(status.get("id", "")) != "soul_bind":
+			continue
+		if source_id != -999 and int(status.get("source_id", -1)) != source_id:
+			continue
+		total += int(status.get("layers", 0))
+	return total
+
+
+func get_poison_cleanse_cost(player_id: int) -> int:
+	return _poison_layers(player_id) * 5
+
+
+func can_cleanse_poison(player_id: int) -> bool:
+	return _valid_player(player_id) and _poison_layers(player_id) > 0 and players[player_id].mp >= get_poison_cleanse_cost(player_id)
+
+
+func _clear_poison(player_id: int) -> int:
+	var removed = 0
+	for index in range(players[player_id].statuses.size() - 1, -1, -1):
+		if String(players[player_id].statuses[index].id) == "poison":
+			removed += int(players[player_id].statuses[index].get("layers", 0))
+			players[player_id].statuses.remove_at(index)
+	_clear_soul_bind_if_no_poison(player_id)
+	return removed
+
+
+func _spend_poison_layers(player_id: int, amount: int) -> int:
+	if amount <= 0:
+		return 0
+	var remaining = amount
+	var removed = 0
+	for index in range(players[player_id].statuses.size() - 1, -1, -1):
+		var status: Dictionary = players[player_id].statuses[index]
+		if String(status.get("id", "")) != "poison":
+			continue
+		var current_layers = int(status.get("layers", 0))
+		var take = min(current_layers, remaining)
+		remaining -= take
+		removed += take
+		current_layers -= take
+		if current_layers <= 0:
+			players[player_id].statuses.remove_at(index)
+		else:
+			players[player_id].statuses[index].layers = current_layers
+		if remaining <= 0:
+			break
+	_clear_soul_bind_if_no_poison(player_id)
+	return removed
+
+
+func _clear_soul_bind_if_no_poison(player_id: int) -> void:
+	if _poison_layers(player_id) > 0:
+		return
+	for index in range(players[player_id].statuses.size() - 1, -1, -1):
+		if String(players[player_id].statuses[index].id) == "soul_bind":
+			players[player_id].statuses.remove_at(index)
+	players[player_id].per_turn_flags.disabled_skill_ids = []
+
+
+func _disabled_skill_count(player_id: int, source_id: int = -999) -> int:
+	return _curse_layers(player_id, source_id)
+
+
+func _poison_source(player_id: int) -> int:
+	for status in players[player_id].statuses:
+		if String(status.get("id", "")) == "poison":
+			return int(status.get("source_id", -1))
+	return -1
+
+
+func _soul_bind_source(player_id: int) -> int:
+	for status in players[player_id].statuses:
+		if String(status.get("id", "")) == "soul_bind":
+			return int(status.get("source_id", -1))
+	return -1
+
+
+func _clear_actor_marks(actor_id: int, target_id: int) -> int:
+	var removed = 0
+	for index in range(players[target_id].statuses.size() - 1, -1, -1):
+		var status: Dictionary = players[target_id].statuses[index]
+		var status_id = String(status.get("id", ""))
+		if int(status.get("source_id", -1)) != actor_id:
+			continue
+		if status_id == "poison" or status_id == "soul_bind":
+			removed += max(1, int(status.get("layers", 1)))
+			players[target_id].statuses.remove_at(index)
+	_clear_soul_bind_if_no_poison(target_id)
+	return removed
+
+
+func _resolve_purge_marks(actor_id: int, target_id: int) -> void:
+	var removed_marks = _clear_actor_marks(actor_id, target_id)
+	if removed_marks <= 0:
+		_log("P%d 没有可清除的巫医印记。" % [target_id + 1])
+		return
+	var mp_loss = removed_marks * 5
+	var mp_before = int(players[target_id].mp)
+	players[target_id].mp = max(0, players[target_id].mp - mp_loss)
+	_log("P%d 的印记被清除，失去 %d MP（%d -> %d）。" % [target_id + 1, min(mp_before, mp_loss), mp_before, int(players[target_id].mp)])
+	var extra_damage = 0
+	if actor_id == first_player_id:
+		var pending_action: Dictionary = pending_actions[target_id]
+		if String(pending_action.get("type", "")) == ACTION_SKILL:
+			var pending_skill = get_skill(target_id, String(pending_action.get("skill_id", "")))
+			if not pending_skill.is_empty():
+				var pending_cost = get_skill_cost(target_id, pending_skill, pending_action.get("modes", []))
+				if players[target_id].mp < pending_cost:
+					extra_damage = removed_marks * 5
+	else:
+		var overflow = max(0, mp_loss - mp_before)
+		extra_damage = overflow * 5
+	if extra_damage > 0:
+		_deal_direct_life_loss(actor_id, target_id, extra_damage, "痊愈")
+
+
 func _add_burn(source_id: int, target_id: int, base_layers: int) -> void:
 	var layers = base_layers + _burn_layer_bonus(source_id)
 	if layers <= 0:
@@ -907,14 +1219,12 @@ func _resolve_round_start_statuses() -> void:
 	for player_id in range(2):
 		if phase == PHASE_GAME_OVER:
 			return
+		players[player_id].per_turn_flags.disabled_skill_ids = []
 		var kept_statuses = []
 		for status in players[player_id].statuses:
 			var status_id = String(status.id)
 			if status_id == "poison":
-				_deal_direct_life_loss(int(status.get("source_id", -1)), player_id, int(status.get("value", 5)), "中毒")
-				status.duration = int(status.get("duration", 1)) - 1
-				if int(status.duration) > 0 and phase != PHASE_GAME_OVER:
-					kept_statuses.append(status)
+				kept_statuses.append(status)
 			elif status_id == "burn":
 				_resolve_burn_status(player_id, status)
 			elif status_id == "static_cage_pending":
@@ -934,6 +1244,25 @@ func _resolve_round_start_statuses() -> void:
 			if phase == PHASE_GAME_OVER:
 				break
 		players[player_id].statuses = kept_statuses
+		_clear_soul_bind_if_no_poison(player_id)
+		if _poison_layers(player_id) > 0 and _curse_layers(player_id) > 0:
+			var bind_source_id = _soul_bind_source(player_id)
+			if _valid_player(bind_source_id):
+				_start_skill_disable_selection(bind_source_id, player_id, _curse_layers(player_id, bind_source_id))
+				return
+
+
+func _resolve_round_end_statuses() -> void:
+	for player_id in range(2):
+		if phase == PHASE_GAME_OVER:
+			return
+		var total_poison = _poison_layers(player_id)
+		if total_poison <= 0:
+			continue
+		var source_id = _poison_source(player_id)
+		_deal_direct_life_loss(source_id, player_id, 5, "中毒")
+		_spend_poison_layers(player_id, 1)
+		_clear_soul_bind_if_no_poison(player_id)
 
 
 func _resolve_burn_status(target_id: int, status: Dictionary) -> void:
@@ -973,6 +1302,9 @@ func _remove_status(player_id: int, status_id: String) -> void:
 
 
 func _finish_round() -> void:
+	_resolve_round_end_statuses()
+	if phase == PHASE_GAME_OVER:
+		return
 	for player_id in range(2):
 		var refund = int(players[player_id].per_turn_flags.get("end_mp_refund", 0))
 		if refund > 0:
@@ -1113,8 +1445,12 @@ func get_skill_block_reason(player_id: int, skill: Dictionary, modes: Array = []
 		ignore_count = 1
 	if not DiceRulesScript.requirements_met_with_ignore(players[player_id].dice, skill.get("dice_requirements", []), ignore_count):
 		return "骰子需求不满足"
+	if players[player_id].per_turn_flags.get("disabled_skill_ids", []).has(String(skill.get("id", ""))):
+		return "本回合被缚魂禁用"
 	if _skill_is_attack(skill) and bool(players[player_id].per_turn_flags.get("attack_skill_locked", false)):
 		return "本回合无法使用攻击技能"
+	if String(skill.get("id", "")) == "witch_soul_bind" and _poison_layers(1 - player_id) <= 0:
+		return "目标没有中毒层数"
 	if String(skill.id) == "archer_piercing_arrow" and int(players[player_id].dealt_damage_last_turn) > 0:
 		return "上回合已经造成过伤害"
 	if String(skill.id) == "archer_eagle_eye" and bool(players[player_id].per_game_flags.get("eagle_eye_used", false)):
@@ -1322,7 +1658,9 @@ func status_text(player_id: int) -> String:
 		if status_id == "burn":
 			names.append("%s x%d" % [get_status_name(status_id), int(status.get("layers", 1))])
 		elif status_id == "poison":
-			names.append("%s(%d)" % [get_status_name(status_id), int(status.get("duration", 1))])
+			names.append("%s x%d" % [get_status_name(status_id), int(status.get("layers", 1))])
+		elif status_id == "soul_bind":
+			names.append("%s x%d" % [get_status_name(status_id), int(status.get("layers", 1))])
 		else:
 			names.append(get_status_name(status_id))
 	if bool(players[player_id].per_game_flags.get("eagle_eye", false)):
