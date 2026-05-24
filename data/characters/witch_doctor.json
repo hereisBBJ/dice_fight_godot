@@ -21,9 +21,9 @@
       "type": "attack",
       "cost": 0,
       "dice_requirements": ["1-3", "1-3"],
-      "description": "造成 5 点伤害并施加 1 层中毒；若目标已有中毒层数，则改为造成 15 点伤害并施加 2 层中毒。",
+      "description": "造成 5 点伤害并施加 2 层中毒；若目标已有中毒层数，则改为造成 15 点伤害并施加 2 层中毒。",
       "effects": [
-        {"type": "poison_strike", "base_damage": 5, "poisoned_damage": 15, "base_layers": 1, "poisoned_layers": 2}
+        {"type": "poison_strike", "base_damage": 5, "poisoned_damage": 15, "base_layers": 2, "poisoned_layers": 2}
       ]
     },
     {

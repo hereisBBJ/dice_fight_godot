@@ -1033,7 +1033,7 @@ func _apply_damage(attacker: int, target: int, amount: int, break_life_damage: i
 			_log("P%d 的护盾被击破，但没有造成生命伤害。" % [target + 1])
 			if _has_status(target, "fire_shield"):
 				_log("P%d 的火盾被破盾触发，对 P%d 反施加灼烧。" % [target + 1, attacker + 1])
-				_add_burn(target, attacker, 1)
+				_add_burn(target, attacker, 2)
 		else:
 			result.broke_shield = true
 			result.shield_damage = shield_before
@@ -1044,7 +1044,7 @@ func _apply_damage(attacker: int, target: int, amount: int, break_life_damage: i
 			result.hp_damage = _deal_life_damage(attacker, target, life_damage, skill_id)
 			if _has_status(target, "fire_shield"):
 				_log("P%d 的火盾被破盾触发，对 P%d 反施加灼烧。" % [target + 1, attacker + 1])
-				_add_burn(target, attacker, 1)
+				_add_burn(target, attacker, 2)
 		if int(result.get("hp_damage", 0)) <= 0 and int(result.get("shield_damage", 0)) > 0:
 			_trigger_passive_on_shield_absorb(target, attacker, int(result.get("shield_damage", 0)))
 	_check_game_over()

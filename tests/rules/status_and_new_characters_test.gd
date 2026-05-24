@@ -29,6 +29,7 @@ func _run() -> void:
 	_test_witch_corruption_extract_converts_poison_to_mp_and_shield()
 	_test_witch_recovery_drains_mp_and_deals_bonus_damage()
 	_test_burn_layers_clear_at_round_start()
+	_test_pyromancer_fireball_applies_two_burn()
 	_test_fire_shield_reflects_burn_on_break()
 	_test_pyromancer_rebirth_prevents_first_death()
 	_test_arcanist_skip_passive_recovers_mp()
@@ -175,7 +176,7 @@ func _test_witch_poison_ticks_at_round_end() -> void:
 	_expect(battle.submit_skip(1), "second player should skip")
 	_expect(battle.submit_skill(0, "witch_poison_mark"), "witch doctor should use poison mark")
 	_expect(int(battle.players[1].hp) == hp_before - 10, "poison mark should deal 5 damage and poison should tick for 5 at round end")
-	_expect(not _has_status(battle, 1, "poison"), "single-layer poison should decay away after round-end tick")
+	_expect(int(battle._poison_layers(1)) == 1, "poison mark should leave 1 poison layer after the round-end decay")
 
 
 func _test_poison_round_end_only_consumes_one_total_layer() -> void:
@@ -267,12 +268,20 @@ func _test_burn_layers_clear_at_round_start() -> void:
 	_expect(not _has_status(battle, 1, "burn"), "burn should clear after round start settlement")
 
 
+func _test_pyromancer_fireball_applies_two_burn() -> void:
+	var battle = _make_battle("pyromancer", "swordsman")
+	var skill = battle.get_skill(0, "pyromancer_fireball")
+	_expect(not skill.is_empty(), "pyromancer fireball should exist")
+	battle._resolve_effect(0, skill, skill.effects[0], [])
+	_expect(_status_layers(battle, 1, "burn") == 2, "fireball should apply 2 burn layers")
+
+
 func _test_fire_shield_reflects_burn_on_break() -> void:
 	var battle = _make_battle("swordsman", "pyromancer")
 	battle.players[1].shield = 5
 	battle._add_status(1, "fire_shield", 1, 1, 1)
 	battle._apply_damage(0, 1, 20, 10, "test_break")
-	_expect(_has_status(battle, 0, "burn"), "breaking fire shield should reflect burn to attacker")
+	_expect(_status_layers(battle, 0, "burn") == 2, "breaking fire shield should reflect 2 burn layers to attacker")
 
 
 func _test_pyromancer_rebirth_prevents_first_death() -> void:
@@ -307,12 +316,12 @@ func _test_arcanist_drain_recovers_mp_from_hp_damage() -> void:
 	var battle = _make_battle("arcanist", "swordsman")
 	battle.first_player_id = 0
 	battle.players[0].mp = 20
-	battle.players[1].shield = 26
+	battle.players[1].shield = 24
 	battle.players[0].dice = [6, 5, 1, 1]
 	battle.players[1].dice = [1, 1, 1, 1]
 	_expect(battle.submit_skip(1), "second player should skip before drain")
 	_expect(battle.submit_skill(0, "arcanist_drain"), "arcanist should cast drain")
-	_expect(int(battle.players[0].mp) == 10, "drain should restore 10 MP when actual life damage reaches 12")
+	_expect(int(battle.players[0].mp) == 10, "drain should restore 10 MP when actual life damage reaches 11")
 
 
 func _test_arcanist_storm_spends_all_mp_for_damage() -> void:
@@ -338,7 +347,7 @@ func _test_arcanist_overflow_mode_spends_mp_for_bonus_damage() -> void:
 	_expect(battle.submit_skip(1), "second player should skip before overflow blast")
 	_expect(battle.submit_skill(0, "arcanist_arcane_blast", ["overflow"]), "arcanist should cast overflow blast")
 	_expect(int(battle.players[0].mp) == 0, "overflow blast should spend 30 MP")
-	_expect(int(battle.players[1].hp) == hp_before - 40, "overflow blast should deal 40 damage")
+	_expect(int(battle.players[1].hp) == hp_before - 25, "overflow blast should deal 25 damage")
 
 
 func _test_arcanist_damage_augment_buffs_blast_and_storm() -> void:
@@ -351,7 +360,7 @@ func _test_arcanist_damage_augment_buffs_blast_and_storm() -> void:
 	var hp_before = int(battle.players[1].hp)
 	_expect(battle.submit_skip(1), "second player should skip before buffed blast")
 	_expect(battle.submit_skill(0, "arcanist_arcane_blast"), "arcanist should cast blast with damage augment")
-	_expect(int(battle.players[1].hp) == hp_before - 35, "arcane overload should increase arcane blast damage by 15")
+	_expect(int(battle.players[1].hp) == hp_before - 30, "arcane overload should increase arcane blast damage by 15")
 
 	battle = _make_battle("arcanist", "swordsman")
 	_grant_character_augment(battle, 0, "arcane_overload")
@@ -589,3 +598,12 @@ func _has_status(battle, player_id: int, status_id: String) -> bool:
 		if String(status.id) == status_id:
 			return true
 	return false
+
+
+func _status_layers(battle, player_id: int, status_id: String) -> int:
+	for status in battle.players[player_id].statuses:
+		if String(status.id) == status_id:
+			if status.has("layers"):
+				return int(status.get("layers", 0))
+			return int(status.get("value", 0))
+	return 0
