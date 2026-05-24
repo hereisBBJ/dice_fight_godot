@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/components/dice_tray.gd" id="1_dice_tray"]
+
+[node name="DiceTray" type="HBoxContainer"]
+theme_override_constants/separation = 8
+script = ExtResource("1_dice_tray")

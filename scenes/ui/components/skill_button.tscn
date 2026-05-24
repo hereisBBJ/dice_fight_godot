@@ -3,9 +3,104 @@
 [ext_resource type="Script" path="res://scripts/ui/components/skill_button.gd" id="1_skill"]
 
 [node name="SkillButton" type="Button"]
-custom_minimum_size = Vector2(180, 112)
-text = "技能"
-icon_alignment = 0
-vertical_icon_alignment = 1
-expand_icon = true
+custom_minimum_size = Vector2(104, 116)
+clip_contents = true
+text = "技能\n0 MP"
+flat = false
 script = ExtResource("1_skill")
+
+[node name="Content" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 5.0
+offset_right = -6.0
+offset_bottom = -5.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 4
+
+[node name="IconFrame" type="PanelContainer" parent="Content"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+
+[node name="SkillIcon" type="TextureRect" parent="Content/IconFrame"]
+layout_mode = 2
+mouse_filter = 2
+stretch_mode = 5
+
+[node name="InfoColumn" type="VBoxContainer" parent="Content"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+theme_override_constants/separation = 0
+
+[node name="NameLabel" type="Label" parent="Content/InfoColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 14
+text = "技能名称"
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 3
+
+[node name="RequirementLabel" type="Label" parent="Content/InfoColumn"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+text = "需求  无"
+text_overrun_behavior = 3
+
+[node name="DescriptionLabel" type="Label" parent="Content/InfoColumn"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+theme_override_font_sizes/font_size = 11
+text = "技能说明"
+autowrap_mode = 2
+max_lines_visible = 1
+text_overrun_behavior = 3
+
+[node name="MetaColumn" type="VBoxContainer" parent="Content"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+alignment = 1
+theme_override_constants/separation = 0
+
+[node name="CostLabel" type="Label" parent="Content/MetaColumn"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 13
+text = "0 MP"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ModeLabel" type="Label" parent="Content/MetaColumn"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 11
+text = "基础"
+horizontal_alignment = 1
+text_overrun_behavior = 3
+
+[node name="ReasonLabel" type="Label" parent="Content/MetaColumn"]
+visible = false
+layout_mode = 2
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+text = "不可用"
+horizontal_alignment = 1
+autowrap_mode = 2
+max_lines_visible = 1
+text_overrun_behavior = 3

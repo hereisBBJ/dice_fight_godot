@@ -51,6 +51,7 @@
   - run the project,
   - capture debug output,
   - verify script parse errors and runtime errors.
+- When using MCP `run_project` only for validation, call `stop_project` after capturing debug output so no Godot runtime remains alive.
 - If the MCP tool is not visible in a new session, restart Codex so it reloads the MCP config.
 
 ## Codex Skills
@@ -63,8 +64,9 @@
 - Run JSON parsing checks after editing data files.
 - Run the Godot project after GDScript changes when the MCP is available.
 - If Godot reports parse errors, fix the first reported script and rerun; many follow-on errors may be cascading.
+- Do not use bare `godot --path . --headless --check-only`: in Godot 4.6.2 on Windows, `--check-only` is intended for `--script` and the bare form can leave a headless Godot process running. Use `--headless --quit` for startup/debug checks.
 - Current useful checks:
-  - `godot --path . --headless --check-only`
+  - `godot --path . --headless --quit`
   - `godot --path . --headless --script res://tests/rules/rule_smoke_test.gd`
   - `godot --path . --headless --script res://tests/rules/status_and_new_characters_test.gd`
   - `godot --path . --headless --script res://tests/network/network_controller_smoke_test.gd`

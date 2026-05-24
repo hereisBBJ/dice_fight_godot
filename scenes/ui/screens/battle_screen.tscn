@@ -1,12 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://ddimkheiopul1"]
+[gd_scene format=3 uid="uid://ddimkheiopul1"]
 
 [ext_resource type="Script" uid="uid://c40vm5etxub5a" path="res://scripts/ui/screens/battle_screen.gd" id="1_battle"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/player_state_panel.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogs/interactive_dialog.tscn" id="3_interactive"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/battle_log_view.tscn" id="4_log"]
-[ext_resource type="Script" path="res://scripts/ui/components/animated_sprite_texture_rect.gd" id="5_anim"]
+[ext_resource type="Script" uid="uid://coikv2r3axsyt" path="res://scripts/ui/components/animated_sprite_texture_rect.gd" id="5_anim"]
 
-[node name="BattleScreen" type="Control"]
+[node name="BattleScreen" type="Control" unique_id=2132732082]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -15,7 +15,16 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_battle")
 
-[node name="LayoutRoot" type="VBoxContainer" parent="."]
+[node name="Background" type="ColorRect" parent="." unique_id=50699479]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0627451, 0.0745098, 0.101961, 1)
+
+[node name="LayoutRoot" type="VBoxContainer" parent="." unique_id=2067740999]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -24,42 +33,41 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
-[node name="TopBand" type="PanelContainer" parent="LayoutRoot"]
-custom_minimum_size = Vector2(0, 150)
+[node name="TopBand" type="PanelContainer" parent="LayoutRoot" unique_id=534656152]
+custom_minimum_size = Vector2(0, 132)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 0.58
+size_flags_stretch_ratio = 0.45
 
-[node name="TopMargin" type="MarginContainer" parent="LayoutRoot/TopBand"]
+[node name="TopMargin" type="MarginContainer" parent="LayoutRoot/TopBand" unique_id=628002621]
 layout_mode = 2
-theme_override_constants/margin_left = 56
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 56
-theme_override_constants/margin_bottom = 18
+theme_override_constants/margin_left = 36
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 36
+theme_override_constants/margin_bottom = 8
 
-[node name="StatusRow" type="HBoxContainer" parent="LayoutRoot/TopBand/TopMargin"]
+[node name="StatusRow" type="HBoxContainer" parent="LayoutRoot/TopBand/TopMargin" unique_id=2108068381]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 34
+theme_override_constants/separation = 18
 
-[node name="SelfPanel" parent="LayoutRoot/TopBand/TopMargin/StatusRow" instance=ExtResource("2_player")]
-custom_minimum_size = Vector2(430, 116)
+[node name="SelfPanel" parent="LayoutRoot/TopBand/TopMargin/StatusRow" unique_id=1373572054 instance=ExtResource("2_player")]
+custom_minimum_size = Vector2(360, 112)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 compact = true
 show_dice = false
 
-[node name="TopHud" type="VBoxContainer" parent="LayoutRoot/TopBand/TopMargin/StatusRow"]
-custom_minimum_size = Vector2(260, 0)
+[node name="TopHud" type="VBoxContainer" parent="LayoutRoot/TopBand/TopMargin/StatusRow" unique_id=1444414412]
+custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
-size_flags_horizontal = 1
 size_flags_vertical = 3
 theme_override_constants/separation = 8
 
-[node name="NetworkStatus" type="Label" parent="LayoutRoot/TopBand/TopMargin/StatusRow/TopHud"]
+[node name="NetworkStatus" type="Label" parent="LayoutRoot/TopBand/TopMargin/StatusRow/TopHud" unique_id=54228242]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 14
@@ -67,69 +75,69 @@ text = "状态"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="BackButton" type="Button" parent="LayoutRoot/TopBand/TopMargin/StatusRow/TopHud"]
+[node name="BackButton" type="Button" parent="LayoutRoot/TopBand/TopMargin/StatusRow/TopHud" unique_id=1348539896]
 layout_mode = 2
 text = "返回模式选择 / 断开连接"
 
-[node name="EnemyPanel" parent="LayoutRoot/TopBand/TopMargin/StatusRow" instance=ExtResource("2_player")]
-custom_minimum_size = Vector2(430, 116)
+[node name="EnemyPanel" parent="LayoutRoot/TopBand/TopMargin/StatusRow" unique_id=1619583191 instance=ExtResource("2_player")]
+custom_minimum_size = Vector2(360, 112)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 compact = true
 show_dice = false
 
-[node name="ArenaBand" type="PanelContainer" parent="LayoutRoot"]
-custom_minimum_size = Vector2(0, 300)
+[node name="ArenaBand" type="PanelContainer" parent="LayoutRoot" unique_id=1978529658]
+custom_minimum_size = Vector2(0, 250)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 1.25
+size_flags_stretch_ratio = 0.95
 
-[node name="ArenaMargin" type="MarginContainer" parent="LayoutRoot/ArenaBand"]
+[node name="ArenaMargin" type="MarginContainer" parent="LayoutRoot/ArenaBand" unique_id=73096285]
 layout_mode = 2
-theme_override_constants/margin_left = 72
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 72
-theme_override_constants/margin_bottom = 0
+theme_override_constants/margin_left = 48
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 48
+theme_override_constants/margin_bottom = 12
 
-[node name="ArenaRow" type="HBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin"]
+[node name="ArenaRow" type="HBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin" unique_id=147427692]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 28
 
-[node name="SelfStageColumn" type="VBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow"]
+[node name="SelfStageColumn" type="VBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow" unique_id=1566598625]
 custom_minimum_size = Vector2(210, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SelfStageSpacer" type="Control" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn"]
+[node name="SelfStageSpacer" type="Control" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn" unique_id=542208803]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="SelfCharacterHolder" type="CenterContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn"]
+[node name="SelfCharacterHolder" type="CenterContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn" unique_id=1070777209]
 custom_minimum_size = Vector2(0, 168)
 layout_mode = 2
 
-[node name="SelfCharacterSlot" type="PanelContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder"]
-custom_minimum_size = Vector2(124, 168)
+[node name="SelfCharacterSlot" type="PanelContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder" unique_id=360311613]
+custom_minimum_size = Vector2(150, 190)
 layout_mode = 2
 
-[node name="SelfCharacterMargin" type="MarginContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot"]
+[node name="SelfCharacterMargin" type="MarginContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot" unique_id=329453704]
 layout_mode = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="SelfCharacterColumn" type="VBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot/SelfCharacterMargin"]
+[node name="SelfCharacterColumn" type="VBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot/SelfCharacterMargin" unique_id=1047885549]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Portrait" type="TextureRect" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot/SelfCharacterMargin/SelfCharacterColumn"]
-custom_minimum_size = Vector2(104, 118)
+[node name="Portrait" type="TextureRect" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot/SelfCharacterMargin/SelfCharacterColumn" unique_id=1309900705]
+custom_minimum_size = Vector2(128, 136)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -137,68 +145,73 @@ expand_mode = 1
 stretch_mode = 5
 script = ExtResource("5_anim")
 
-[node name="Name" type="Label" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot/SelfCharacterMargin/SelfCharacterColumn"]
+[node name="Name" type="Label" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/SelfStageColumn/SelfCharacterHolder/SelfCharacterSlot/SelfCharacterMargin/SelfCharacterColumn" unique_id=1248890757]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "角色"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="StageCenter" type="VBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow"]
+[node name="StageCenter" type="VBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow" unique_id=22636854]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 4
 
-[node name="Round" type="Label" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/StageCenter"]
+[node name="Round" type="Label" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/StageCenter" unique_id=1774788215]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
 text = "第 1 回合"
 horizontal_alignment = 1
 
-[node name="StageCenterFill" type="CenterContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/StageCenter"]
+[node name="ArenaGlow" type="ColorRect" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/StageCenter" unique_id=2087715481]
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+color = Color(0.184314, 0.498039, 0.847059, 0.75)
+
+[node name="StageCenterFill" type="CenterContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/StageCenter" unique_id=837717815]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="SceneLabel" type="Label" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/StageCenter/StageCenterFill"]
+[node name="SceneLabel" type="Label" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/StageCenter/StageCenterFill" unique_id=890606730]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
-text = "场景"
+text = "蓝焰竞技场"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="EnemyStageColumn" type="VBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow"]
+[node name="EnemyStageColumn" type="VBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow" unique_id=1200274428]
 custom_minimum_size = Vector2(210, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="EnemyStageSpacer" type="Control" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn"]
+[node name="EnemyStageSpacer" type="Control" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn" unique_id=1481014455]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="EnemyCharacterHolder" type="CenterContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn"]
+[node name="EnemyCharacterHolder" type="CenterContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn" unique_id=1829868037]
 custom_minimum_size = Vector2(0, 168)
 layout_mode = 2
 
-[node name="EnemyCharacterSlot" type="PanelContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder"]
-custom_minimum_size = Vector2(124, 168)
+[node name="EnemyCharacterSlot" type="PanelContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder" unique_id=1708056948]
+custom_minimum_size = Vector2(150, 190)
 layout_mode = 2
 
-[node name="EnemyCharacterMargin" type="MarginContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot"]
+[node name="EnemyCharacterMargin" type="MarginContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot" unique_id=1860968414]
 layout_mode = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="EnemyCharacterColumn" type="VBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot/EnemyCharacterMargin"]
+[node name="EnemyCharacterColumn" type="VBoxContainer" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot/EnemyCharacterMargin" unique_id=2128016242]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Portrait" type="TextureRect" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot/EnemyCharacterMargin/EnemyCharacterColumn"]
-custom_minimum_size = Vector2(104, 118)
+[node name="Portrait" type="TextureRect" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot/EnemyCharacterMargin/EnemyCharacterColumn" unique_id=222216938]
+custom_minimum_size = Vector2(128, 136)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -206,97 +219,106 @@ expand_mode = 1
 stretch_mode = 5
 script = ExtResource("5_anim")
 
-[node name="Name" type="Label" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot/EnemyCharacterMargin/EnemyCharacterColumn"]
+[node name="Name" type="Label" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot/EnemyCharacterMargin/EnemyCharacterColumn" unique_id=1643067839]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "角色"
 horizontal_alignment = 1
 autowrap_mode = 2
 
-[node name="BottomBand" type="PanelContainer" parent="LayoutRoot"]
+[node name="BottomBand" type="PanelContainer" parent="LayoutRoot" unique_id=247869096]
 custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 1.17
+size_flags_stretch_ratio = 1.55
 
-[node name="BottomMargin" type="MarginContainer" parent="LayoutRoot/BottomBand"]
+[node name="BottomMargin" type="MarginContainer" parent="LayoutRoot/BottomBand" unique_id=2062771313]
 layout_mode = 2
-theme_override_constants/margin_left = 48
-theme_override_constants/margin_top = 26
-theme_override_constants/margin_right = 48
-theme_override_constants/margin_bottom = 26
-
-[node name="BottomRow" type="HBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin"]
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 26
-
-[node name="DicePanel" type="PanelContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow"]
-custom_minimum_size = Vector2(300, 0)
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="DiceMargin" type="MarginContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 14
+theme_override_constants/margin_left = 36
 theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 14
+theme_override_constants/margin_right = 36
 theme_override_constants/margin_bottom = 14
 
-[node name="DiceColumn" type="VBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin"]
+[node name="BottomRow" type="HBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin" unique_id=864949549]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 16
 
-[node name="DiceTitle" type="Label" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn"]
+[node name="DicePanel" type="PanelContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow" unique_id=1861660352]
+custom_minimum_size = Vector2(330, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.68
+
+[node name="DiceMargin" type="MarginContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel" unique_id=1247115337]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="DiceColumn" type="VBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin" unique_id=1584971235]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 7
+
+[node name="DiceTitle" type="Label" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn" unique_id=2014618225]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "骰子"
 horizontal_alignment = 1
 
-[node name="DiceSlot" type="VBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn"]
+[node name="DiceSlot" type="VBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn" unique_id=1337848413]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="LogView" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn" instance=ExtResource("4_log")]
+[node name="LogView" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn" unique_id=227976917 instance=ExtResource("4_log")]
 custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ActionCell" type="PanelContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow"]
+[node name="ActionCell" type="PanelContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow" unique_id=1417419348]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+size_flags_stretch_ratio = 1.32
 
-[node name="ActionMargin" type="MarginContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell"]
+[node name="ActionMargin" type="MarginContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell" unique_id=932368544]
 layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_top = 14
-theme_override_constants/margin_right = 14
-theme_override_constants/margin_bottom = 14
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
 
-[node name="ActionColumn" type="VBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin"]
+[node name="ActionColumn" type="VBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin" unique_id=1706158669]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
-[node name="ActionTitle" type="Label" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn"]
+[node name="ActionTitle" type="Label" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn" unique_id=908939649]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "我方技能选择"
 horizontal_alignment = 1
 
-[node name="InteractiveDialog" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn" instance=ExtResource("3_interactive")]
+[node name="InteractiveDialog" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn" unique_id=705794561 instance=ExtResource("3_interactive")]
 custom_minimum_size = Vector2(0, 0)
 layout_mode = 2
 
-[node name="ActionSlot" type="VBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn"]
+[node name="ActionScroll" type="ScrollContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn" unique_id=814395710]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="ActionSlot" type="HBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/ActionScroll" unique_id=285251616]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3

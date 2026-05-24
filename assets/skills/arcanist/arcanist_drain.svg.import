@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://b7m4x9kq0mg2c"
-path="res://.godot/imported/arcanist_drain.svg-a1f3e90c6ed44ab29a7202f91fef0004.ctex"
+uid="uid://b7m4yakq0mg2c"
+path="res://.godot/imported/arcanist_drain.svg-c9ce24af10956e4980b0547a6bfe8ccc.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/skills/arcanist/arcanist_drain.svg"
-dest_files=["res://.godot/imported/arcanist_drain.svg-a1f3e90c6ed44ab29a7202f91fef0004.ctex"]
+dest_files=["res://.godot/imported/arcanist_drain.svg-c9ce24af10956e4980b0547a6bfe8ccc.ctex"]
 
 [params]
 

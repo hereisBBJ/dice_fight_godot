@@ -2,8 +2,8 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d8yltjlwmqb0c"
-path="res://.godot/imported/arcanist_mana_shield.svg-a1f3e90c6ed44ab29a7202f91fef0003.ctex"
+uid="uid://ekp8hon2jf8k"
+path="res://.godot/imported/arcanist_mana_shield.svg-b358043d5931be3ebfbe2db91b371feb.ctex"
 metadata={
 "vram_texture": false
 }
@@ -11,7 +11,7 @@ metadata={
 [deps]
 
 source_file="res://assets/skills/arcanist/arcanist_mana_shield.svg"
-dest_files=["res://.godot/imported/arcanist_mana_shield.svg-a1f3e90c6ed44ab29a7202f91fef0003.ctex"]
+dest_files=["res://.godot/imported/arcanist_mana_shield.svg-b358043d5931be3ebfbe2db91b371feb.ctex"]
 
 [params]
 

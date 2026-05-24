@@ -27,7 +27,8 @@ const UIAssetsScript = preload("res://scripts/ui/components/ui_assets.gd")
 @onready var dice_slot: VBoxContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn/DiceSlot
 @onready var action_cell: PanelContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell
 @onready var action_title: Label = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/ActionTitle
-@onready var action_slot: VBoxContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/ActionSlot
+@onready var action_scroll: ScrollContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/ActionScroll
+@onready var action_slot: HBoxContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/ActionScroll/ActionSlot
 @onready var interactive_dialog = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/InteractiveDialog
 @onready var log_view = $LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn/LogView
 
@@ -38,7 +39,7 @@ var _last_presentation_event_count = 0
 
 
 func _ready() -> void:
-	_apply_placeholder_styles()
+	_apply_formal_styles()
 	back_button.pressed.connect(func():
 		back_requested.emit()
 	)
@@ -61,7 +62,7 @@ func setup(new_battle, new_network_controller) -> void:
 		(1 - battle.first_player_id) + 1,
 		battle.role_text(1 - battle.first_player_id)
 	]
-	scene_label.text = "场景"
+	scene_label.text = "蓝焰竞技场"
 	action_title.text = "我方技能选择" if network_controller.mode != network_controller.MODE_LOCAL else "本机行动选择"
 	enemy_panel.set_player(enemy_id, battle, animate, _should_hide_enemy_private_info(enemy_id))
 	self_panel.set_player(self_id, battle, animate, false)
@@ -71,8 +72,8 @@ func setup(new_battle, new_network_controller) -> void:
 	interactive_dialog.setup(battle, network_controller)
 	if not interactive_dialog.interactive_command.is_connected(_on_interactive_command):
 		interactive_dialog.interactive_command.connect(_on_interactive_command)
-	action_slot.visible = battle.phase != battle.PHASE_INTERACTIVE
-	if action_slot.visible:
+	action_scroll.visible = battle.phase != battle.PHASE_INTERACTIVE
+	if action_scroll.visible:
 		_render_actions(self_id)
 	log_view.set_logs(_visible_logs_for_local_player())
 	if first_render:
@@ -81,12 +82,18 @@ func setup(new_battle, new_network_controller) -> void:
 		_play_new_presentation_events(self_id, enemy_id)
 
 
-func _apply_placeholder_styles() -> void:
-	top_band.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.93, 0.42, 0.14), Color(0.12, 0.10, 0.08), 0))
-	arena_band.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.23, 0.43, 0.72), Color(0.08, 0.15, 0.26), 0))
-	bottom_band.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.93, 0.42, 0.14), Color(0.12, 0.10, 0.08), 0))
-	dice_panel.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.58, 0.58, 0.56), Color(0.18, 0.18, 0.18), 0))
-	action_cell.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.93, 0.42, 0.14, 0.0), Color(0.12, 0.10, 0.08, 0.0), 0))
+func _apply_formal_styles() -> void:
+	top_band.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(Color(0.06, 0.07, 0.10, 0.98), UIAssetsScript.COLOR_GOLD_DARK, 0, 0))
+	arena_band.add_theme_stylebox_override("panel", UIAssetsScript.arena_style())
+	bottom_band.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(Color(0.06, 0.07, 0.10, 0.98), UIAssetsScript.COLOR_GOLD_DARK, 0, 0))
+	dice_panel.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(UIAssetsScript.COLOR_PANEL, UIAssetsScript.COLOR_GOLD, 6, 2))
+	action_cell.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(UIAssetsScript.COLOR_PANEL, UIAssetsScript.COLOR_GOLD, 6, 2))
+	self_character_slot.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.08, 0.11, 0.16, 0.94), UIAssetsScript.COLOR_ARCANE))
+	enemy_character_slot.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.08, 0.11, 0.16, 0.94), UIAssetsScript.COLOR_ARCANE))
+	UIAssetsScript.apply_label_color(status_label, UIAssetsScript.COLOR_TEXT_MUTED)
+	UIAssetsScript.apply_label_color(round_label, UIAssetsScript.COLOR_GOLD)
+	UIAssetsScript.apply_label_color(scene_label, UIAssetsScript.COLOR_ARCANE)
+	UIAssetsScript.apply_label_color(action_title, UIAssetsScript.COLOR_GOLD)
 
 
 func _self_player_id() -> int:
@@ -117,10 +124,10 @@ func _render_actions(self_id: int) -> void:
 func _render_action_panel(player_id: int, parent: Container) -> void:
 	var player: Dictionary = battle.players[player_id]
 	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(260, 0)
+	panel.custom_minimum_size = Vector2(0, 0)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.10, 0.09, 0.07, 0.78), Color(0.97, 0.70, 0.10, 0.72), 8))
+	panel.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.07, 0.08, 0.11, 0.88), UIAssetsScript.COLOR_GOLD_DARK, 5))
 	parent.add_child(panel)
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 10)
@@ -129,11 +136,13 @@ func _render_action_panel(player_id: int, parent: Container) -> void:
 	margin.add_theme_constant_override("margin_bottom", 10)
 	panel.add_child(margin)
 	var column = VBoxContainer.new()
-	column.add_theme_constant_override("separation", 8)
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.add_theme_constant_override("separation", 6)
 	margin.add_child(column)
 	var title = Label.new()
 	title.text = "P%d 行动 | %s" % [player_id + 1, battle.role_text(player_id)]
 	title.add_theme_font_size_override("font_size", 16)
+	UIAssetsScript.apply_label_color(title, UIAssetsScript.COLOR_GOLD)
 	column.add_child(title)
 	if not network_controller.can_control_player(player_id):
 		_add_hint(column, "联网模式下等待对方操作。")
@@ -144,16 +153,15 @@ func _render_action_panel(player_id: int, parent: Container) -> void:
 	_render_tools(column, player_id)
 	var skill_label = Label.new()
 	skill_label.text = "可用技能"
+	UIAssetsScript.apply_label_color(skill_label, UIAssetsScript.COLOR_TEXT_MUTED)
 	column.add_child(skill_label)
-	var skill_grid = GridContainer.new()
-	skill_grid.columns = 2 if network_controller.mode == network_controller.MODE_LOCAL else 4
-	skill_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	skill_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	skill_grid.add_theme_constant_override("h_separation", 8)
-	skill_grid.add_theme_constant_override("v_separation", 8)
-	column.add_child(skill_grid)
+	var skill_list = HBoxContainer.new()
+	skill_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	skill_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	skill_list.add_theme_constant_override("separation", 6)
+	column.add_child(skill_list)
 	for skill in battle.get_allowed_skills(player_id):
-		_add_skill_buttons(skill_grid, player_id, skill)
+		_add_skill_buttons(skill_list, player_id, skill)
 
 
 func _render_stage_character(slot: PanelContainer, portrait: TextureRect, label: Label, player_id: int, prefix: String, flip_h: bool) -> void:
@@ -217,7 +225,7 @@ func _add_dice_row(player_id: int, animate: bool) -> void:
 	var player: Dictionary = battle.players[player_id]
 	var row_panel = PanelContainer.new()
 	row_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row_panel.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.72, 0.72, 0.70, 0.75), Color(0.30, 0.30, 0.30), 4))
+	row_panel.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.10, 0.12, 0.17, 0.94), UIAssetsScript.COLOR_GOLD_DARK, 5))
 	dice_slot.add_child(row_panel)
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 8)
@@ -235,6 +243,7 @@ func _add_dice_row(player_id: int, animate: bool) -> void:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.add_theme_font_size_override("font_size", 18)
+	UIAssetsScript.apply_label_color(label, UIAssetsScript.COLOR_GOLD)
 	row.add_child(label)
 	var dice_view = DiceViewScene.instantiate()
 	dice_view.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -293,7 +302,7 @@ func _render_tools(column: VBoxContainer, player_id: int) -> void:
 		tools.add_child(cleanse)
 
 
-func _add_skill_buttons(parent: GridContainer, player_id: int, skill: Dictionary) -> void:
+func _add_skill_buttons(parent: Container, player_id: int, skill: Dictionary) -> void:
 	var modes: Array = skill.get("modes", [])
 	if modes.is_empty():
 		_add_skill_button(parent, player_id, skill, [])
@@ -304,7 +313,7 @@ func _add_skill_buttons(parent: GridContainer, player_id: int, skill: Dictionary
 		_add_skill_button(parent, player_id, skill, [String(mode.get("id", ""))])
 
 
-func _add_skill_button(parent: GridContainer, player_id: int, skill: Dictionary, modes: Array) -> void:
+func _add_skill_button(parent: Container, player_id: int, skill: Dictionary, modes: Array) -> void:
 	var character: Dictionary = battle.players[player_id].character
 	var theme_color = UIAssetsScript.color_from_hex(String(character.get("theme_color", "")))
 	var button = SkillButtonScene.instantiate()
@@ -350,7 +359,7 @@ func _is_private_log_for_player(text: String, player_id: int) -> bool:
 func _add_hint(parent: VBoxContainer, text: String) -> void:
 	var label = Label.new()
 	label.text = text
-	label.modulate = Color(0.67, 0.70, 0.78)
+	label.modulate = UIAssetsScript.COLOR_TEXT_MUTED
 	parent.add_child(label)
 
 

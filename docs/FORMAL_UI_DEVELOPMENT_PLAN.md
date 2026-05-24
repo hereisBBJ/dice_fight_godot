@@ -49,8 +49,8 @@ docs/references/formal_ui_mockup.png
 - 现有 UI 场景位于 `scenes/ui/`，脚本位于 `scripts/ui/`。
 - 战斗界面已经有可复用的高层结构：顶部 HUD 区、中部竞技场区、底部行动/日志区。
 - 占位角色头像、技能图标、状态图标和部分角色动画路径已经存在。
-- 战斗界面样式仍然主要依赖 `BattleScreen._apply_placeholder_styles()` 中的运行时 `StyleBoxFlat` 占位颜色。
-- 骰子目前仍是简单 Label 风格控件，不是正式骰子美术。
+- 战斗界面样式已切换到共享 Theme 与 `BattleScreen._apply_formal_styles()`，但竞技场背景仍是程序化/占位式正式风格，后续可替换为最终美术。
+- 骰子已由 `DiceTray` 与 `DieFace` 渲染，当前使用第一版 SVG 骰子面与隐藏骰子背面。
 - 主菜单、角色选择、强化选择和结算界面仍然像 demo/控制台界面。
 - 创建本计划时工作区干净，但本地 `main` 比 `origin/main` 落后 1 个提交。
 
@@ -203,7 +203,9 @@ assets/ui/theme/dice_fight_theme.tres
 
 ## 工作流 2：资产与 Theme 基础
 
-状态：`[todo]`
+状态：`[done]`
+
+最后更新时间：2026-05-24。
 
 ### 需要结果
 
@@ -246,9 +248,18 @@ Theme 至少覆盖：
 - 应用 Theme 后，现有 UI smoke tests 通过。
 - 不提交 `.godot/` 生成缓存。
 
+### 工作流 2 备注
+
+- 已创建 `assets/ui/` 目录结构，并添加 `assets/ui/theme/dice_fight_theme.tres`。
+- 第一版正式 UI 骰子面 SVG 已放入 `assets/ui/dice/`，其余资产目录保留给后续正式美术。
+- `scenes/main/main.tscn` 已应用共享 Theme；`UIAssets.texture_from_path()` fallback 行为保持不变，并补充共享色板/面板样式 helper。
+- 未修改规则或网络代码。
+
 ## 工作流 3：战斗界面布局重构
 
-状态：`[todo]`
+状态：`[done]`
+
+最后更新时间：2026-05-24。
 
 主要文件：
 
@@ -278,9 +289,19 @@ Theme 至少覆盖：
 - 行动提交与交互判定流程仍然可用。
 - UI smoke tests 和 Godot 启动/debug 检查通过。
 
+### 工作流 3 备注
+
+- 已重构 `battle_screen.tscn` 的构图比例，保留顶部双 HUD、中间网络状态、中央蓝色竞技场、底部骰子/日志与技能区。
+- `BattleScreen._apply_placeholder_styles()` 已替换为 `_apply_formal_styles()`，中心占位 `"场景"` 文本改为正式竞技场标题。
+- `_render_*` 方法仍只渲染 snapshot、提交 command 或播放表现事件；LAN 隐私过滤逻辑保持在原有 UI 过滤边界内。
+- 2026-05-24 修复首版正式布局的缩放问题：压缩顶部 compact HUD、降低竞技场/底部最小高度，并为技能区加入纵向滚动，避免 16:9 视口下状态栏和技能列表越界。
+- 未修改规则或网络代码。
+
 ## 工作流 4：角色 HUD 组件
 
-状态：`[todo]`
+状态：`[done]`
+
+最后更新时间：2026-05-24。
 
 当前主要组件：
 
@@ -316,9 +337,18 @@ scripts/ui/components/character_hud.gd
 - 多个状态同时存在时仍然可读。
 - 被动和强化文本在目标分辨率下不溢出。
 
+### 工作流 4 备注
+
+- 本轮选择演进 `PlayerStatePanel`，未新增 `CharacterHud`，以减少主战斗屏接线变更。
+- HUD 已加入头像框、角色/先后手信息、HP/MP/护盾资源条、状态流式徽章、被动/强化/行动摘要。
+- `set_player(player_id, battle, animate, hide_private_info)` API 及测试使用的 `role_label`、`status_row` 保持可用。
+- LAN 对手私密行动继续显示为隐藏状态，不暴露待提交行动。
+
 ## 工作流 5：骰子托盘与骰子面
 
-状态：`[todo]`
+状态：`[done]`
+
+最后更新时间：2026-05-24。
 
 当前主要组件：
 
@@ -355,9 +385,19 @@ scripts/ui/components/die_face.gd
 - LAN 模式下隐藏的敌方骰子看起来是有意设计，而不是坏掉。
 - 重掷动画不会和 snapshot 中的实际骰值脱节。
 
+### 工作流 5 备注
+
+- 已新增 `DieFace` 与 `DiceTray` 组件，并让 `DiceView.set_dice(dice, animate)` 继续作为兼容入口。
+- 已用 `assets/ui/dice/die_1_normal.svg` 到 `die_6_normal.svg`、`die_back_hidden.svg` 和 `die_empty_normal.svg` 替代纯 Label 骰子。
+- 空骰子数组会渲染为隐藏骰子状态，用于 LAN 隐私或无骰值 fallback。
+- 2026-05-24 修复骰子点数不可见问题：`DieFace` 现在程序化绘制点数/隐藏问号，避免依赖 SVG 导入状态导致空骰面。
+- 仅增加视觉状态和 snapshot 变化动画，未修改骰子规则、重掷或改点命令。
+
 ## 工作流 6：技能卡组件
 
-状态：`[todo]`
+状态：`[done]`
+
+最后更新时间：2026-05-24。
 
 当前主要组件：
 
@@ -392,9 +432,20 @@ scripts/ui/components/skill_card.gd
 - 禁用技能能清楚说明为什么不可用。
 - 新增普通伤害/护盾类技能仍然主要依赖数据配置，不需要改 UI 规则。
 
+### 工作流 6 备注
+
+- 已保留 `SkillButton` 类、Button 继承、`configure(skill, selected_modes, cost, block_reason, theme_color)` 合约和原有 `pressed` 信号。
+- 技能卡改为横向布局，包含图标、名称、骰子需求、描述摘要、MP 费用、模式标签和禁用原因。
+- `button.text` 仍保留技能名/模式/费用片段，兼容现有 UI smoke tests。
+- 2026-05-24 修复首版技能卡过高导致越界问题：技能卡高度、图标、字体和描述行数已压缩为战斗屏可滚动列表尺寸。
+- 2026-05-24 根据实机画面反馈调整技能区：热座模式下 P1/P2 行动面板保持横向并排；每个行动面板内部的技能按键使用 `VBoxContainer` 纵向列表，技能按键不再横向填满父容器，并改为纵向显示图标、技能名/模式和 MP cost；骰子需求、描述与禁用原因放入 tooltip 详情。
+- 未修改 `use_skill` command payload 或任何技能结算逻辑。
+
 ## 工作流 7：战斗日志面板
 
-状态：`[todo]`
+状态：`[done]`
+
+最后更新时间：2026-05-24。
 
 当前主要组件：
 
@@ -420,6 +471,13 @@ scripts/ui/components/skill_card.gd
 - 日志仍然对调试有用。
 - 日志不再承担玩家理解战斗的主要责任。
 - LAN 客户端不会泄露敌方私密行动日志。
+
+### 工作流 7 备注
+
+- 已将日志组件改为紧凑嵌入式深色面板，带金色标题栏。
+- `set_logs(logs)` API 保持不变；日志生成和 LAN 隐私过滤仍由原有调用方负责。
+- 显示层使用 `RichTextLabel` 对玩家前缀和重要事件做轻量着色，并自动滚动到最新条目。
+- 未修改规则日志文本来源或网络逻辑。
 
 ## 工作流 8：状态徽章与反馈效果
 
@@ -578,7 +636,7 @@ scripts/ui/components/augment_card.gd
 
 ## 工作流 13：验证与回归检查
 
-状态：`[todo]`
+状态：`[doing]`
 
 ### 需要结果
 
@@ -591,10 +649,12 @@ scripts/ui/components/augment_card.gd
 每次重要 UI 改动后运行最小相关验证：
 
 ```powershell
-godot --path . --headless --check-only
+godot --path . --headless --quit
 godot --path . --headless --script res://tests/ui/presentation_screens_smoke_test.gd
 godot --path . --headless --script res://tests/ui/main_network_lifetime_test.gd
 ```
+
+不要使用裸 `godot --path . --headless --check-only` 作为启动检查；Godot 4.6.2 Windows 版要求 `--check-only` 搭配 `--script`，裸命令会进入 headless 主循环并遗留 `godot.exe` 进程。通过 MCP 运行项目做验证时，抓取 debug 输出后必须调用 `stop_project`。
 
 如果 UI 改动涉及 command payload、snapshot shape、网络行为或 presentation event shape，还要运行：
 
@@ -692,26 +752,25 @@ YYYYMMDD_character_select.png
 | 工作流 | 状态 | 负责人 | 最后更新 | 备注 |
 | --- | --- | --- | --- | --- |
 | 1. 视觉规格冻结 | `[done]` | Codex | 2026-05-24 | 已冻结视觉关键词、目标分辨率、色板、边框/控件语言、资产命名规则和角色显示范围；未改规则或网络代码。 |
-| 2. 资产与 Theme 基础 | `[todo]` | 未分配 | 2026-05-24 | 添加 `assets/ui/` 和 Theme 资源。 |
-| 3. 战斗界面布局重构 | `[todo]` | 未分配 | 2026-05-24 | 目标效果图的主要落地点。 |
-| 4. 角色 HUD 组件 | `[todo]` | 未分配 | 2026-05-24 | 替换或演进 `PlayerStatePanel`。 |
-| 5. 骰子托盘与骰子面 | `[todo]` | 未分配 | 2026-05-24 | 替换 Label 风格骰子。 |
-| 6. 技能卡组件 | `[todo]` | 未分配 | 2026-05-24 | 替换 demo 按钮视觉。 |
-| 7. 战斗日志面板 | `[todo]` | 未分配 | 2026-05-24 | 重做样式并保留隐私过滤。 |
+| 2. 资产与 Theme 基础 | `[done]` | Codex | 2026-05-24 | 已添加 `assets/ui/` 目录、共享 Theme、第一版骰子 SVG，并应用到主 UI 根节点；fallback 行为保留。 |
+| 3. 战斗界面布局重构 | `[done]` | Codex | 2026-05-24 | 已调整为顶部 HUD/中央竞技场/底部骰子日志与技能区，替换占位样式入口，保留 signal 与 command 流程。 |
+| 4. 角色 HUD 组件 | `[done]` | Codex + 子智能体 Euler | 2026-05-24 | 已演进 `PlayerStatePanel`，加入头像框、资源条、状态流、被动/强化/行动摘要，并保留 LAN 隐私。 |
+| 5. 骰子托盘与骰子面 | `[done]` | Codex + 子智能体 Euclid | 2026-05-24 | 已新增 `DiceTray`/`DieFace` 与正式骰子 SVG，`DiceView.set_dice()` 兼容保留。 |
+| 6. 技能卡组件 | `[done]` | Codex + 子智能体 Franklin | 2026-05-24 | 已将 `SkillButton` 改为横向技能卡，展示需求、费用、模式和禁用原因，`use_skill` payload 未变。 |
+| 7. 战斗日志面板 | `[done]` | Codex + 子智能体 Zeno | 2026-05-24 | 已改为嵌入式金色标题日志面板，自动滚动并做轻量着色；日志生成和隐私过滤未变。 |
 | 8. 状态徽章与反馈效果 | `[todo]` | 未分配 | 2026-05-24 | 让关键状态一眼可读。 |
 | 9. 竞技场角色与表现事件 | `[todo]` | 未分配 | 2026-05-24 | 扩展视觉反馈，不改变规则。 |
 | 10. 全流程界面正式化 | `[todo]` | 未分配 | 2026-05-24 | 主菜单、选角、强化选择、结算。 |
 | 11. 交互判定弹窗 | `[todo]` | 未分配 | 2026-05-24 | 主题化判定弹窗。 |
 | 12. 音频反馈 | `[todo]` | 未分配 | 2026-05-24 | 填充现有音频 stream slot。 |
-| 13. 验证与回归检查 | `[todo]` | 未分配 | 2026-05-24 | 每次重要改动后运行。 |
+| 13. 验证与回归检查 | `[doing]` | Codex | 2026-05-24 | 修正 Godot 启动检查命令，避免遗留 headless 进程。 |
 
 ## 近期下一步
 
-1. 冻结第一版视觉规格和角色显示范围决策。
-2. 添加 `assets/ui/` 目录和 `dice_fight_theme.tres`。
-3. 围绕目标效果图重构战斗界面布局。
-4. 实现正式 `character_hud`、`skill_card` 和 `dice_tray` 组件。
-5. 使用 Godot 启动检查和 UI smoke tests 验证。
+1. 推进工作流 8：状态徽章与反馈效果。
+2. 推进工作流 9：竞技场角色站位与表现事件。
+3. 推进工作流 10：主菜单、角色选择、强化选择、结算界面正式化。
+4. 后续重大 UI 阶段完成后补充截图留档与分辨率人工检查。
 
 ## 协作规则
 

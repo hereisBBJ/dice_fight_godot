@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="slot" x1="18" y1="14" x2="112" y2="118" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#30384a"/>
+      <stop offset="1" stop-color="#121722"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="112" height="112" rx="18" fill="#0f131c"/>
+  <rect x="18" y="18" width="92" height="92" rx="14" fill="url(#slot)" stroke="#5f4930" stroke-width="4" stroke-dasharray="10 7"/>
+  <path d="M42 64 H86" stroke="#9b8d74" stroke-width="8" stroke-linecap="round" opacity="0.7"/>
+</svg>

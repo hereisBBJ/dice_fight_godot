@@ -75,7 +75,9 @@ For pixel-art or pixel-adjacent sprites:
 After adding `.png` assets, let Godot import them and run:
 
 ```bash
-godot --path . --headless --check-only
+godot --path . --headless --quit
 ```
 
-Use the Godot MCP when it is available.
+Do not use bare `godot --path . --headless --check-only` for this project. On Godot 4.6.2 for Windows, `--check-only` is intended to be paired with `--script`; the bare command can leave a headless Godot process running.
+
+Use the Godot MCP when it is available. If `run_project` is used only for validation, call `stop_project` after collecting debug output.
