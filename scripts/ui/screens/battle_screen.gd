@@ -86,8 +86,8 @@ func _apply_formal_styles() -> void:
 	top_band.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(Color(0.06, 0.07, 0.10, 0.98), UIAssetsScript.COLOR_GOLD_DARK, 0, 0))
 	arena_band.add_theme_stylebox_override("panel", UIAssetsScript.arena_style())
 	bottom_band.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(Color(0.06, 0.07, 0.10, 0.98), UIAssetsScript.COLOR_GOLD_DARK, 0, 0))
-	dice_panel.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(UIAssetsScript.COLOR_PANEL, UIAssetsScript.COLOR_GOLD, 6, 2))
-	action_cell.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(UIAssetsScript.COLOR_PANEL, UIAssetsScript.COLOR_GOLD, 6, 2))
+	dice_panel.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_texture_style(UIAssetsScript.COLOR_PANEL, UIAssetsScript.COLOR_GOLD))
+	action_cell.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_texture_style(UIAssetsScript.COLOR_PANEL, UIAssetsScript.COLOR_GOLD))
 	self_character_slot.add_theme_stylebox_override("panel", _transparent_character_slot_style())
 	enemy_character_slot.add_theme_stylebox_override("panel", _transparent_character_slot_style())
 	UIAssetsScript.apply_label_color(status_label, UIAssetsScript.COLOR_TEXT_MUTED)
@@ -139,7 +139,7 @@ func _render_action_panel(player_id: int, parent: Container) -> void:
 	panel.custom_minimum_size = Vector2(0, 0)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.07, 0.08, 0.11, 0.88), UIAssetsScript.COLOR_GOLD_DARK, 5))
+	panel.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_texture_style(Color(0.07, 0.08, 0.11, 0.88), UIAssetsScript.COLOR_GOLD_DARK))
 	parent.add_child(panel)
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 10)
@@ -237,7 +237,7 @@ func _add_dice_row(player_id: int, animate: bool) -> void:
 	var player: Dictionary = battle.players[player_id]
 	var row_panel = PanelContainer.new()
 	row_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row_panel.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.10, 0.12, 0.17, 0.94), UIAssetsScript.COLOR_GOLD_DARK, 5))
+	row_panel.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_texture_style(Color(0.10, 0.12, 0.17, 0.94), UIAssetsScript.COLOR_GOLD_DARK))
 	dice_slot.add_child(row_panel)
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 8)

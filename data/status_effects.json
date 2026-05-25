@@ -2,49 +2,49 @@
   {
     "id": "guard",
     "name": "格挡",
-    "icon_path": "res://assets/status/guard.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_guard.png",
     "description": "本回合内每次受到普通伤害时，原始伤害 -5。"
   },
   {
     "id": "sure_evasion",
     "name": "必定闪避",
-    "icon_path": "res://assets/status/sure_evasion.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_sure_evasion.png",
     "description": "受到的普通伤害无效，持续到本回合结束。"
   },
   {
     "id": "immune",
     "name": "免疫",
-    "icon_path": "res://assets/status/immune.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_immune.png",
     "description": "受到的普通伤害无效，持续到本回合结束。"
   },
   {
     "id": "eagle_eye",
     "name": "鹰眼",
-    "icon_path": "res://assets/status/eagle_eye.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_eagle_eye.png",
     "description": "本局永久持续。射击必中，后跳判定除 1 外均成功。"
   },
   {
     "id": "poison",
     "name": "中毒",
-    "icon_path": "res://assets/status/poison.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_poison.png",
     "description": "回合结束时若仍有中毒层数，则失去 5 点生命并令层数 -1。可通过净化行动消除全部中毒。"
   },
   {
     "id": "cold",
     "name": "寒冷",
-    "icon_path": "res://assets/status/cold.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_cold.png",
     "description": "冰系技能施加的全局元素层数，可被寒潮等效果消耗。"
   },
   {
     "id": "frost_tide",
     "name": "寒潮",
-    "icon_path": "res://assets/status/frost_tide.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_frost_tide.png",
     "description": "持续期间，使用霜刺或冰风后可消耗目标 1 层寒冷进行追击。"
   },
   {
     "id": "ice_wind",
     "name": "冰风",
-    "icon_path": "res://assets/status/ice_wind.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_ice_wind.png",
     "description": "从后续回合开始持续发动：回合开始前造成伤害，并使双方各获得 1 层寒冷。"
   },
   {
@@ -56,31 +56,31 @@
   {
     "id": "burn",
     "name": "灼烧",
-    "icon_path": "res://assets/status/burn.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_burn.png",
     "description": "回合开始时清除所有层数，并逐层掷 D6：奇数受到 10 点真实伤害。"
   },
   {
     "id": "fire_shield",
     "name": "火盾",
-    "icon_path": "res://assets/status/fire_shield.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_fire_shield.png",
     "description": "本回合被破盾时，对攻击者反施加 1 层灼烧。"
   },
   {
     "id": "flame_tide",
     "name": "炎潮",
-    "icon_path": "res://assets/status/flame_tide.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_flame_tide.png",
     "description": "本局永久持续。之后施加灼烧层数 +1。"
-	},
-	{
-	  "id": "static_cage_pending",
-	  "name": "静电牢笼",
-	  "icon_path": "res://assets/status/static_cage_pending.svg",
+  },
+  {
+    "id": "static_cage_pending",
+    "name": "静电牢笼",
+    "icon_path": "res://assets/ui/icons/icon_status_static_cage.png",
     "description": "下回合开始时生效。先手版会提高技能费用；后手版还会提高首次重投或改点费用。"
   },
   {
     "id": "static_cage_active",
     "name": "静电牢笼·激活",
-    "icon_path": "res://assets/status/static_cage_pending.svg",
+    "icon_path": "res://assets/ui/icons/icon_status_static_cage.png",
     "description": "本回合受静电牢笼影响：技能费用提高；若为后手版，还会使第一次重投或改点费用提高。"
   }
 ]

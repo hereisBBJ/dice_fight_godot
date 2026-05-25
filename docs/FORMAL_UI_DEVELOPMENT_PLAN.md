@@ -294,6 +294,8 @@ Theme 至少覆盖：
 
 ### 工作流 2 备注
 
+- 2026-05-25 生成第一组可复用暗黑奇幻像素 UI PNG 资产：`panel_dark_gold_normal.png`、厚重按钮 normal/hover/pressed/disabled、像素头像框、状态徽章框、资源条外框、技能卡 normal/disabled 和金色角花；源图使用无文字、无数字、品红色键背景提示词生成，落地后裁切为透明 PNG。
+- 2026-05-25 `dice_fight_theme.tres` 已接入按钮、`PanelContainer` 和 `ProgressBar` 背板的 `StyleBoxTexture`；`UIAssets` 新增贴图 `StyleBox` helper，并保留缺失图片时的 `StyleBoxFlat` fallback。
 - 已创建 `assets/ui/` 目录结构，并添加 `assets/ui/theme/dice_fight_theme.tres`。
 - 第一版正式 UI 骰子面 SVG 已放入 `assets/ui/dice/`，其余资产目录保留给后续正式美术。
 - `scenes/main/main.tscn` 已应用共享 Theme；`UIAssets.texture_from_path()` fallback 行为保持不变，并补充共享色板/面板样式 helper。
@@ -525,7 +527,7 @@ scripts/ui/components/skill_card.gd
 
 ## 工作流 8：状态徽章与反馈效果
 
-状态：`[todo]`
+状态：`[doing]`
 
 当前主要组件：
 
@@ -550,6 +552,12 @@ scripts/ui/components/skill_card.gd
 - 关键状态视觉上彼此不同。
 - 状态层数和持续时间不只藏在 tooltip 中。
 - 玩家可以一眼识别中毒、灼烧、免疫、闪避。
+
+### 工作流 8 备注
+
+- 2026-05-25 生成并接入第一组状态徽章 PNG：poison、burn、immune、sure_evasion、guard、cold、fire_shield、eagle_eye、flame_tide、frost_tide、ice_wind、static_cage。`data/status_effects.json` 的对应 `icon_path` 已指向 `assets/ui/icons/icon_status_*.png`。
+- `StatusIcon` 继续保持 `configure(status, status_data)` 合约，徽章底座改用可复用 `frame_status_badge_normal.png` 的 `StyleBoxTexture`；层数/持续时间显示与 tooltip 逻辑保持不变。
+- 本轮只改表现层资产和样式，未扩展 presentation event 状态反馈，因此工作流 8 仍为进行中。
 
 ## 工作流 9：竞技场角色与表现事件
 
@@ -812,7 +820,7 @@ YYYYMMDD_character_select.png
 | 5. 骰子托盘与骰子面 | `[done]` | Codex + 子智能体 Euclid | 2026-05-24 | 已新增 `DiceTray`/`DieFace` 与正式骰子 SVG，`DiceView.set_dice()` 兼容保留。 |
 | 6. 技能卡组件 | `[done]` | Codex + 子智能体 Franklin | 2026-05-24 | 已将 `SkillButton` 改为横向技能卡，展示需求、费用、模式和禁用原因，`use_skill` payload 未变。 |
 | 7. 战斗日志面板 | `[done]` | Codex + 子智能体 Zeno | 2026-05-24 | 已改为嵌入式金色标题日志面板，自动滚动并做轻量着色；日志生成和隐私过滤未变。 |
-| 8. 状态徽章与反馈效果 | `[todo]` | 未分配 | 2026-05-24 | 让关键状态一眼可读。 |
+| 8. 状态徽章与反馈效果 | `[doing]` | Codex | 2026-05-25 | 已生成并接入第一组状态徽章 PNG；状态变化反馈仍待后续。 |
 | 9. 竞技场角色与表现事件 | `[doing]` | Codex | 2026-05-25 | 已接入第一版 baked_scene_mode 竞技场背景，并隐藏角色槽边框；角色动画、浮字和表现事件反馈待后续完成。 |
 | 10. 全流程界面正式化 | `[todo]` | 未分配 | 2026-05-24 | 主菜单、选角、强化选择、结算。 |
 | 11. 交互判定弹窗 | `[todo]` | 未分配 | 2026-05-24 | 主题化判定弹窗。 |

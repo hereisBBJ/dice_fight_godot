@@ -58,7 +58,7 @@ func _apply_card_content(skill: Dictionary, display_name: String, cost: int, blo
 		skill_icon.texture = UIAssetsScript.texture_from_path(String(skill.get("icon_path", "")), theme_color, Vector2i(44, 44))
 		skill_icon.modulate = Color(0.62, 0.62, 0.60) if block_reason != "" else Color.WHITE
 	if icon_frame != null:
-		icon_frame.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(theme_color.darkened(0.20), Color("#6F4B1E"), 5))
+		icon_frame.add_theme_stylebox_override("panel", UIAssetsScript.status_badge_texture_style(theme_color.lightened(0.18)))
 
 	if name_label != null:
 		name_label.text = display_name
@@ -140,20 +140,11 @@ func _apply_label_colors(block_reason: String) -> void:
 
 
 func _apply_button_style(theme_color: Color) -> void:
-	var normal = UIAssetsScript.panel_style(Color("#1B2130"), Color("#C9973F"), 6)
-	var hover = UIAssetsScript.panel_style(Color("#222C40"), theme_color.lightened(0.32), 6)
-	var pressed_style = UIAssetsScript.panel_style(Color("#111722"), Color("#47C7D9"), 6)
-	var disabled_style = UIAssetsScript.panel_style(Color("#24262A"), Color("#5D6470"), 6)
-	var focus_style = UIAssetsScript.panel_style(Color("#1D2638"), Color("#47C7D9"), 6)
-	normal.set_border_width_all(2)
-	hover.set_border_width_all(2)
-	pressed_style.set_border_width_all(2)
-	focus_style.set_border_width_all(2)
-	add_theme_stylebox_override("normal", normal)
-	add_theme_stylebox_override("hover", hover)
-	add_theme_stylebox_override("pressed", pressed_style)
-	add_theme_stylebox_override("disabled", disabled_style)
-	add_theme_stylebox_override("focus", focus_style)
+	add_theme_stylebox_override("normal", UIAssetsScript.skill_card_texture_style(false))
+	add_theme_stylebox_override("hover", UIAssetsScript.skill_card_texture_style(false))
+	add_theme_stylebox_override("pressed", UIAssetsScript.skill_card_texture_style(false))
+	add_theme_stylebox_override("disabled", UIAssetsScript.skill_card_texture_style(true))
+	add_theme_stylebox_override("focus", UIAssetsScript.skill_card_texture_style(false))
 	add_theme_color_override("font_color", Color(1, 1, 1, 0))
 	add_theme_color_override("font_hover_color", Color(1, 1, 1, 0))
 	add_theme_color_override("font_pressed_color", Color(1, 1, 1, 0))

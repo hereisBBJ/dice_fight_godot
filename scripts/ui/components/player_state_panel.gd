@@ -55,8 +55,8 @@ func set_player(player_id: int, battle, animate: bool = false, hide_private_info
 	var theme_color = UIAssetsScript.color_from_hex(String(character.get("theme_color", "")), Color(0.36, 0.45, 0.65))
 	var character_name = "未选择" if character.is_empty() else String(character.get("name", ""))
 
-	add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(PANEL_BG, theme_color.lightened(0.18), 6, 2))
-	portrait_frame.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.07, 0.08, 0.11, 1.0), theme_color.lightened(0.25), 5))
+	add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_texture_style(PANEL_BG, theme_color.lightened(0.18)))
+	portrait_frame.add_theme_stylebox_override("panel", UIAssetsScript.portrait_frame_texture_style(theme_color.lightened(0.25)))
 	portrait.texture = UIAssetsScript.texture_from_path(String(character.get("portrait_path", "")), theme_color, Vector2i(192, 192))
 	name_label.text = "P%d  %s" % [player_id + 1, character_name]
 
@@ -79,8 +79,8 @@ func set_player(player_id: int, battle, animate: bool = false, hide_private_info
 
 
 func _apply_base_styles() -> void:
-	add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(PANEL_BG, GOLD, 6, 2))
-	dice_slot.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.09, 0.11, 0.16, 0.96), GOLD_DARK, 4))
+	add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_texture_style(PANEL_BG, GOLD))
+	dice_slot.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_texture_style(Color(0.09, 0.11, 0.16, 0.96), GOLD_DARK))
 	UIAssetsScript.apply_label_color(name_label, TEXT_STRONG)
 	UIAssetsScript.apply_label_color(role_label, GOLD)
 	UIAssetsScript.apply_label_color(feedback_label, Color("#FFE08A"))
@@ -135,12 +135,7 @@ func _set_bar(bar: ProgressBar, label: String, value: int, maximum: int, color: 
 	bar.value = clamp(value, 0, display_maximum)
 	bar.tooltip_text = "%s %d / %d" % [label, value, maximum]
 
-	var background = StyleBoxFlat.new()
-	background.bg_color = Color(0.05, 0.06, 0.09, 0.94)
-	background.border_color = Color(0.49, 0.36, 0.16, 0.85)
-	background.set_border_width_all(1)
-	background.set_corner_radius_all(4)
-	bar.add_theme_stylebox_override("background", background)
+	bar.add_theme_stylebox_override("background", UIAssetsScript.resource_bar_texture_style())
 
 	var fill = StyleBoxFlat.new()
 	fill.bg_color = color

@@ -16,7 +16,7 @@ func configure(status: Dictionary, status_data: Dictionary) -> void:
 	icon_rect.texture = UIAssetsScript.texture_from_path(String(data.get("icon_path", "")), color, Vector2i(48, 48))
 	name_label.text = _status_label(display_name, status)
 	tooltip_text = "%s\n%s" % [name_label.text, description]
-	add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.08, 0.09, 0.11, 0.86), color.darkened(0.15), 5))
+	add_theme_stylebox_override("panel", UIAssetsScript.status_badge_texture_style(color.darkened(0.15)))
 
 
 func _status_label(display_name: String, status: Dictionary) -> String:
