@@ -23,12 +23,12 @@ const PRIVATE_TEXT = "敌方行动：已隐藏"
 @onready var hp_bar: ProgressBar = $Margin/Column/Header/Info_Stats/Stats/HpBar
 @onready var mp_bar: ProgressBar = $Margin/Column/Header/Info_Stats/Stats/MpBar
 @onready var shield_bar: ProgressBar = $Margin/Column/Header/Info_Stats/Stats/ShieldBar
-@onready var dice_slot: Control = $Margin/Column/DiceSlot
+#@onready var dice_slot: Control = $Margin/Column/DiceSlot
 @onready var status_row: HFlowContainer = $Margin/Column/StatusRow
 @onready var passive_label: Label = $Margin/Column/TextBlock/Passive
 @onready var augment_label: Label = $Margin/Column/TextBlock/Augments
 @onready var action_label: Label = $Margin/Column/TextBlock/Action
-@onready var margin: MarginContainer = $Margin
+@onready var margin: NinePatchRect = $Margin
 @onready var column: VBoxContainer = $Margin/Column
 @onready var header: HBoxContainer = $Margin/Column/Header
 @onready var stats: VBoxContainer = $Margin/Column/Header/Info_Stats/Stats
@@ -46,7 +46,7 @@ func _ready() -> void:
 	_apply_base_styles()
 	_apply_layout_mode()
 	_dice_view = DiceViewScene.instantiate()
-	dice_slot.add_child(_dice_view)
+	#dice_slot.add_child(_dice_view)
 
 
 func set_player(player_id: int, battle, animate: bool = false, hide_private_info: bool = false) -> void:
@@ -66,7 +66,7 @@ func set_player(player_id: int, battle, animate: bool = false, hide_private_info
 	_set_bar(hp_bar, "HP", int(player.get("hp", 0)), int(player.get("max_hp", 1)), Color("#D84A3A"))
 	_set_bar(mp_bar, "MP", int(player.get("mp", 0)), int(player.get("max_mp", 1)), Color("#3D8BFF"))
 	_set_bar(shield_bar, "护盾", int(player.get("shield", 0)), int(player.get("max_shield", 1)), Color("#9AA7B8"))
-	_render_dice(player, animate, hide_private_info)
+	#_render_dice(player, animate, hide_private_info)
 	_render_statuses(player, battle.status_effects)
 	_render_text_summary(player_id, player, battle, hide_private_info)
 	_render_feedback(player)
@@ -80,7 +80,7 @@ func set_player(player_id: int, battle, animate: bool = false, hide_private_info
 
 func _apply_base_styles() -> void:
 	add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(PANEL_BG, GOLD, 6, 2))
-	dice_slot.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.09, 0.11, 0.16, 0.96), GOLD_DARK, 4))
+	#dice_slot.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.09, 0.11, 0.16, 0.96), GOLD_DARK, 4))
 	UIAssetsScript.apply_label_color(name_label, TEXT_STRONG)
 	UIAssetsScript.apply_label_color(role_label, GOLD)
 	UIAssetsScript.apply_label_color(feedback_label, Color("#FFE08A"))
@@ -90,7 +90,7 @@ func _apply_base_styles() -> void:
 
 
 func _apply_layout_mode() -> void:
-	dice_slot.visible = show_dice
+	#dice_slot.visible = show_dice
 	if not compact:
 		return
 	custom_minimum_size = Vector2(320, 106)
@@ -102,9 +102,9 @@ func _apply_layout_mode() -> void:
 	header.add_theme_constant_override("separation", 6)
 	stats.add_theme_constant_override("separation", 2)
 	text_block.add_theme_constant_override("separation", 2)
-	portrait_frame.custom_minimum_size = Vector2(58, 58)
+	portrait_frame.custom_minimum_size = Vector2(120, 120)
 	name_label.add_theme_font_size_override("font_size", 15)
-	role_label.add_theme_font_size_override("font_size", 11)
+	role_label.add_theme_font_size_override("font_size", 13)
 	feedback_label.custom_minimum_size = Vector2(0, 0)
 	feedback_label.add_theme_font_size_override("font_size", 11)
 	hp_bar.custom_minimum_size = Vector2(0, 14)
@@ -123,10 +123,10 @@ func _render_dice(player: Dictionary, animate: bool, hide_private_info: bool) ->
 		return
 	if hide_private_info:
 		_dice_view.set_dice([], false)
-		dice_slot.tooltip_text = "联机对战中隐藏敌方骰子。"
+		#dice_slot.tooltip_text = "联机对战中隐藏敌方骰子。"
 	else:
 		_dice_view.set_dice(player.get("dice", []), animate)
-		dice_slot.tooltip_text = ""
+		#dice_slot.tooltip_text = ""
 
 
 func _set_bar(bar: ProgressBar, label: String, value: int, maximum: int, color: Color) -> void:
@@ -192,8 +192,8 @@ func _make_passive_badge(passive: Dictionary) -> Button:
 	]
 	passive_badge.custom_minimum_size = Vector2(112, 34)
 	if compact:
-		passive_badge.custom_minimum_size = Vector2(96, 24)
-		passive_badge.add_theme_font_size_override("font_size", 10)
+		passive_badge.custom_minimum_size = Vector2(112, 24)
+		passive_badge.add_theme_font_size_override("font_size", 12)
 	passive_badge.flat = true
 	passive_badge.focus_mode = Control.FOCUS_NONE
 	passive_badge.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND

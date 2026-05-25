@@ -1,29 +1,50 @@
 [gd_scene format=3 uid="uid://vih5430rgqjp"]
 
 [ext_resource type="Script" uid="uid://ca7n7rtq4xpqm" path="res://scripts/ui/components/player_state_panel.gd" id="1_player"]
+[ext_resource type="Texture2D" uid="uid://bxghak8n3hpy7" path="res://assets/ui/panels/HUD_ui.png" id="2_kus3f"]
 
-[node name="PlayerStatePanel" type="PanelContainer" unique_id=1336245707]
+[node name="PlayerStatePanel" type="PanelContainer" unique_id=24743053]
 custom_minimum_size = Vector2(360, 240)
+offset_right = 360.0
+offset_bottom = 240.0
 script = ExtResource("1_player")
 
-[node name="Margin" type="MarginContainer" parent="." unique_id=132329012]
+[node name="Margin" type="NinePatchRect" parent="." unique_id=1398542256]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
+texture = ExtResource("2_kus3f")
+region_rect = Rect2(13.8763275, 7.2801933, 674.1797, 280.72977)
+patch_margin_left = 36
+patch_margin_top = 36
+patch_margin_right = 36
+patch_margin_bottom = 36
+axis_stretch_horizontal = 2
+axis_stretch_vertical = 2
 
 [node name="Column" type="VBoxContainer" parent="Margin" unique_id=1987868381]
-layout_mode = 2
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.056
+anchor_top = 0.083000004
+anchor_right = 0.95100003
+anchor_bottom = 0.90400004
+offset_left = -0.15999985
+offset_top = 0.07999802
+offset_right = -0.36001587
+offset_bottom = 0.039993286
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 8
 
 [node name="Header" type="HBoxContainer" parent="Margin/Column" unique_id=1621128756]
 layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
 theme_override_constants/separation = 12
 
 [node name="PortraitFrame" type="PanelContainer" parent="Margin/Column/Header" unique_id=1398734712]
-custom_minimum_size = Vector2(84, 84)
+custom_minimum_size = Vector2(120, 120)
 layout_mode = 2
+size_flags_horizontal = 0
 
 [node name="PortraitMargin" type="MarginContainer" parent="Margin/Column/Header/PortraitFrame" unique_id=1982547534]
 layout_mode = 2
@@ -42,6 +63,7 @@ stretch_mode = 5
 [node name="Info_Stats" type="HBoxContainer" parent="Margin/Column/Header" unique_id=785257021]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 5.0
 
 [node name="Info" type="VBoxContainer" parent="Margin/Column/Header/Info_Stats" unique_id=1207214239]
 layout_mode = 2
@@ -51,16 +73,20 @@ theme_override_constants/separation = 4
 [node name="Name" type="Label" parent="Margin/Column/Header/Info_Stats/Info" unique_id=889706518]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 2
 theme_override_font_sizes/font_size = 22
 text = "P1"
+horizontal_alignment = 1
 clip_text = true
 text_overrun_behavior = 3
 
 [node name="Role" type="Label" parent="Margin/Column/Header/Info_Stats/Info" unique_id=204974977]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 2
 theme_override_font_sizes/font_size = 15
 text = "先手"
+horizontal_alignment = 1
 clip_text = true
 text_overrun_behavior = 3
 
@@ -68,6 +94,7 @@ text_overrun_behavior = 3
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 6
 theme_override_font_sizes/font_size = 18
 clip_text = true
 text_overrun_behavior = 3
@@ -75,12 +102,12 @@ text_overrun_behavior = 3
 [node name="Stats" type="VBoxContainer" parent="Margin/Column/Header/Info_Stats" unique_id=49667704]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 6.0
-theme_override_constants/separation = 5
+size_flags_stretch_ratio = 4.0
 
 [node name="HpBar" type="ProgressBar" parent="Margin/Column/Header/Info_Stats/Stats" unique_id=563607211]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
+size_flags_vertical = 3
 value = 100.0
 show_percentage = false
 
@@ -89,16 +116,23 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 20.0
+offset_right = 20.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 13
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
 vertical_alignment = 1
 clip_text = true
+
+[node name="Control" type="Control" parent="Margin/Column/Header/Info_Stats/Stats" unique_id=952016198]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.25
 
 [node name="MpBar" type="ProgressBar" parent="Margin/Column/Header/Info_Stats/Stats" unique_id=964807122]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
+size_flags_vertical = 3
 value = 50.0
 show_percentage = false
 
@@ -107,16 +141,23 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 20.0
+offset_right = 20.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 13
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
 vertical_alignment = 1
 clip_text = true
+
+[node name="Control2" type="Control" parent="Margin/Column/Header/Info_Stats/Stats" unique_id=1652319513]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.25
 
 [node name="ShieldBar" type="ProgressBar" parent="Margin/Column/Header/Info_Stats/Stats" unique_id=1212002331]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
+size_flags_vertical = 3
 show_percentage = false
 
 [node name="Label" type="Label" parent="Margin/Column/Header/Info_Stats/Stats/ShieldBar" unique_id=1660340895]
@@ -124,25 +165,24 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 20.0
+offset_right = 20.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 13
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 16
 vertical_alignment = 1
 clip_text = true
-
-[node name="DiceSlot" type="PanelContainer" parent="Margin/Column" unique_id=80305543]
-custom_minimum_size = Vector2(0, 38)
-layout_mode = 2
 
 [node name="StatusRow" type="HFlowContainer" parent="Margin/Column" unique_id=2027268110]
 custom_minimum_size = Vector2(0, 42)
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/h_separation = 6
 theme_override_constants/v_separation = 4
 
 [node name="TextBlock" type="VBoxContainer" parent="Margin/Column" unique_id=1121357820]
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/separation = 3
 
 [node name="Passive" type="Label" parent="Margin/Column/TextBlock" unique_id=595528196]
