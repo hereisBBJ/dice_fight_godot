@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogs/interactive_dialog.tscn" id="3_interactive"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/battle_log_view.tscn" id="4_log"]
 [ext_resource type="Script" uid="uid://coikv2r3axsyt" path="res://scripts/ui/components/animated_sprite_texture_rect.gd" id="5_anim"]
+[ext_resource type="Texture2D" path="res://assets/ui/backgrounds/bg_battle_arena_dungeon_v1.png" id="6_arena_bg"]
 
 [node name="BattleScreen" type="Control" unique_id=2132732082]
 layout_mode = 3
@@ -93,6 +94,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 0.95
+
+[node name="ArenaBackground" type="TextureRect" parent="LayoutRoot/ArenaBand" unique_id=1023359930]
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("6_arena_bg")
+expand_mode = 1
+stretch_mode = 6
 
 [node name="ArenaMargin" type="MarginContainer" parent="LayoutRoot/ArenaBand" unique_id=73096285]
 layout_mode = 2
