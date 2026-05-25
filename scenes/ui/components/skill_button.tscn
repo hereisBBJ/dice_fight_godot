@@ -1,17 +1,23 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://b3o3yfwgmsdme"]
 
-[ext_resource type="Script" path="res://scripts/ui/components/skill_button.gd" id="1_skill"]
+[ext_resource type="Script" uid="uid://bmas3ldkvcync" path="res://scripts/ui/components/skill_button.gd" id="1_skill"]
 
-[node name="SkillButton" type="Button"]
-custom_minimum_size = Vector2(104, 116)
+[node name="SkillButton" type="Button" unique_id=867991950]
 clip_contents = true
-text = "技能\n0 MP"
-flat = false
+custom_minimum_size = Vector2(104, 116)
+offset_right = 249.0
+offset_bottom = 116.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "技能
+0 MP"
 script = ExtResource("1_skill")
 
-[node name="Content" type="VBoxContainer" parent="."]
+[node name="SkillMargin" type="NinePatchRect" parent="." unique_id=487467400]
 layout_mode = 1
 anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 6.0
@@ -21,86 +27,101 @@ offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-alignment = 1
-theme_override_constants/separation = 4
 
-[node name="IconFrame" type="PanelContainer" parent="Content"]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-size_flags_horizontal = 4
+[node name="Content" type="VBoxContainer" parent="SkillMargin" unique_id=73140234]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 mouse_filter = 2
+theme_override_constants/separation = 2
 
-[node name="SkillIcon" type="TextureRect" parent="Content/IconFrame"]
-layout_mode = 2
-mouse_filter = 2
-stretch_mode = 5
-
-[node name="InfoColumn" type="VBoxContainer" parent="Content"]
+[node name="NameLabel" type="Label" parent="SkillMargin/Content" unique_id=715312896]
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 size_flags_horizontal = 3
-mouse_filter = 2
-theme_override_constants/separation = 0
-
-[node name="NameLabel" type="Label" parent="Content/InfoColumn"]
-layout_mode = 2
-mouse_filter = 2
 theme_override_font_sizes/font_size = 14
 text = "技能名称"
 horizontal_alignment = 1
 vertical_alignment = 1
 text_overrun_behavior = 3
 
-[node name="RequirementLabel" type="Label" parent="Content/InfoColumn"]
-visible = false
+[node name="InfoColumn" type="HBoxContainer" parent="SkillMargin/Content" unique_id=1054586762]
 layout_mode = 2
-mouse_filter = 2
-theme_override_font_sizes/font_size = 12
-text = "需求  无"
-text_overrun_behavior = 3
-
-[node name="DescriptionLabel" type="Label" parent="Content/InfoColumn"]
-visible = false
-layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
 mouse_filter = 2
-theme_override_font_sizes/font_size = 11
-text = "技能说明"
-autowrap_mode = 2
-max_lines_visible = 1
-text_overrun_behavior = 3
+theme_override_constants/separation = 4
+alignment = 1
 
-[node name="MetaColumn" type="VBoxContainer" parent="Content"]
+[node name="IconFrame" type="PanelContainer" parent="SkillMargin/Content/InfoColumn" unique_id=312240371]
+clip_contents = true
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="SkillIcon" type="TextureRect" parent="SkillMargin/Content/InfoColumn/IconFrame" unique_id=237064171]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="MetaColumn" type="VBoxContainer" parent="SkillMargin/Content/InfoColumn" unique_id=621945724]
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
 mouse_filter = 2
-alignment = 1
 theme_override_constants/separation = 0
+alignment = 1
 
-[node name="CostLabel" type="Label" parent="Content/MetaColumn"]
+[node name="CostLabel" type="Label" parent="SkillMargin/Content/InfoColumn/MetaColumn" unique_id=618528033]
 layout_mode = 2
-mouse_filter = 2
 theme_override_font_sizes/font_size = 13
 text = "0 MP"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ModeLabel" type="Label" parent="Content/MetaColumn"]
+[node name="ModeLabel" type="Label" parent="SkillMargin/Content/InfoColumn/MetaColumn" unique_id=731414210]
 visible = false
 layout_mode = 2
-mouse_filter = 2
 theme_override_font_sizes/font_size = 11
 text = "基础"
 horizontal_alignment = 1
 text_overrun_behavior = 3
 
-[node name="ReasonLabel" type="Label" parent="Content/MetaColumn"]
+[node name="ReasonLabel" type="Label" parent="SkillMargin/Content/InfoColumn/MetaColumn" unique_id=746169784]
 visible = false
 layout_mode = 2
-mouse_filter = 2
 theme_override_font_sizes/font_size = 10
 text = "不可用"
 horizontal_alignment = 1
 autowrap_mode = 2
-max_lines_visible = 1
 text_overrun_behavior = 3
+max_lines_visible = 1
+
+[node name="RequirementLabel" type="Label" parent="SkillMargin/Content" unique_id=166345059]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "需求  无"
+text_overrun_behavior = 3
+
+[node name="DescriptionLabel" type="Label" parent="SkillMargin/Content" unique_id=1619628843]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 11
+text = "技能说明"
+autowrap_mode = 2
+text_overrun_behavior = 3
+max_lines_visible = 1

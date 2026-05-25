@@ -15,6 +15,7 @@
 - During LAN battle, each player should only see their own dice and pending skill choice; opponent dice, pending action, and related private submit/reroll/modify log entries are hidden/redacted.
 - Implemented status logic includes guard, immune, sure evasion, poison, cold, burn, fire shield, eagle eye, flame tide, frost tide, ice wind, static cage, and Pyromancer rebirth.
 - UI screens/components for the current flow live under `scenes/ui/` with scripts under `scripts/ui/`; `scripts/ui/main.gd` remains the app controller and network command bridge.
+- The game window is fixed at `1920x1080` in `project.godot`; keep UI work aligned to that 16:9 target.
 - Placeholder portraits, skill icons, status icons, dice art, and audio slots live under `assets/`; JSON asset path fields are optional and should fall back safely.
 - Burn judgment currently auto-accepts rolled dice; the design-doc interaction for rerolling/modifying burn dice is not implemented yet.
 - Audio feedback has editable stream slots, but final sound assets are not present yet.

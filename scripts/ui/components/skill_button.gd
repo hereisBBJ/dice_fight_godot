@@ -2,6 +2,8 @@ extends Button
 class_name SkillButton
 
 const UIAssetsScript = preload("res://scripts/ui/components/ui_assets.gd")
+const ICON_FRAME_SIZE = 44
+const ICON_TEXTURE_SIZE = 34
 
 var icon_frame: PanelContainer = null
 var skill_icon: TextureRect = null
@@ -43,22 +45,47 @@ func _ready() -> void:
 
 
 func _ensure_nodes() -> void:
-	icon_frame = get_node_or_null("Content/IconFrame") as PanelContainer
-	skill_icon = get_node_or_null("Content/IconFrame/SkillIcon") as TextureRect
-	name_label = get_node_or_null("Content/InfoColumn/NameLabel") as Label
-	requirement_label = get_node_or_null("Content/InfoColumn/RequirementLabel") as Label
-	description_label = get_node_or_null("Content/InfoColumn/DescriptionLabel") as Label
-	cost_label = get_node_or_null("Content/MetaColumn/CostLabel") as Label
-	mode_label = get_node_or_null("Content/MetaColumn/ModeLabel") as Label
-	reason_label = get_node_or_null("Content/MetaColumn/ReasonLabel") as Label
+	icon_frame = _find_ui_node("IconFrame") as PanelContainer
+	skill_icon = _find_ui_node("SkillIcon") as TextureRect
+	name_label = _find_ui_node("NameLabel") as Label
+	requirement_label = _find_ui_node("RequirementLabel") as Label
+	description_label = _find_ui_node("DescriptionLabel") as Label
+	cost_label = _find_ui_node("CostLabel") as Label
+	mode_label = _find_ui_node("ModeLabel") as Label
+	reason_label = _find_ui_node("ReasonLabel") as Label
+	_apply_icon_constraints()
+
+
+func _find_ui_node(node_name: String) -> Node:
+	return find_child(node_name, true, false)
+
+
+func _apply_icon_constraints() -> void:
+	if icon_frame != null:
+		icon_frame.clip_contents = true
+		icon_frame.custom_minimum_size = Vector2(ICON_FRAME_SIZE, ICON_FRAME_SIZE)
+		icon_frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon_frame.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if skill_icon != null:
+		skill_icon.custom_minimum_size = Vector2(ICON_TEXTURE_SIZE, ICON_TEXTURE_SIZE)
+		skill_icon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		skill_icon.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		skill_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		skill_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 
 func _apply_card_content(skill: Dictionary, display_name: String, cost: int, block_reason: String, theme_color: Color) -> void:
+	_apply_icon_constraints()
 	if skill_icon != null:
 		skill_icon.texture = UIAssetsScript.texture_from_path(String(skill.get("icon_path", "")), theme_color, Vector2i(44, 44))
 		skill_icon.modulate = Color(0.62, 0.62, 0.60) if block_reason != "" else Color.WHITE
 	if icon_frame != null:
-		icon_frame.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(theme_color.darkened(0.20), Color("#6F4B1E"), 5))
+		var icon_style: StyleBoxFlat = UIAssetsScript.panel_style(theme_color.darkened(0.20), Color("#6F4B1E"), 5)
+		icon_style.content_margin_left = 4
+		icon_style.content_margin_right = 4
+		icon_style.content_margin_top = 4
+		icon_style.content_margin_bottom = 4
+		icon_frame.add_theme_stylebox_override("panel", icon_style)
 
 	if name_label != null:
 		name_label.text = display_name

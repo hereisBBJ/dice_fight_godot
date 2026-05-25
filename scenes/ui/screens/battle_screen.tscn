@@ -1,11 +1,15 @@
 [gd_scene format=3 uid="uid://ddimkheiopul1"]
 
 [ext_resource type="Script" uid="uid://c40vm5etxub5a" path="res://scripts/ui/screens/battle_screen.gd" id="1_battle"]
-[ext_resource type="PackedScene" path="res://scenes/ui/components/player_state_panel.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://vih5430rgqjp" path="res://scenes/ui/components/player_state_panel.tscn" id="2_player"]
+[ext_resource type="Texture2D" uid="uid://ceb7ycncissfh" path="res://assets/ui/backgrounds/papper.jpg" id="2_ufi7x"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogs/interactive_dialog.tscn" id="3_interactive"]
+[ext_resource type="Theme" uid="uid://bx0k602qg0sdy" path="res://assets/ui/theme/dice_fight_theme.tres" id="4_380v8"]
 [ext_resource type="PackedScene" path="res://scenes/ui/components/battle_log_view.tscn" id="4_log"]
 [ext_resource type="Script" uid="uid://coikv2r3axsyt" path="res://scripts/ui/components/animated_sprite_texture_rect.gd" id="5_anim"]
-[ext_resource type="Texture2D" path="res://assets/ui/backgrounds/bg_battle_arena_dungeon_v1.png" id="6_arena_bg"]
+[ext_resource type="Texture2D" uid="uid://diitku04e7jgt" path="res://assets/ui/backgrounds/bg_battle_arena_dungeon_v1.png" id="6_arena_bg"]
+[ext_resource type="Texture2D" uid="uid://cjaduv481lxau" path="res://assets/ui/panels/dice_panel.png" id="7_pxpkm"]
+[ext_resource type="Texture2D" uid="uid://bmqf7l4m4qr87" path="res://assets/ui/panels/action_panel.png" id="8_e8mee"]
 
 [node name="BattleScreen" type="Control" unique_id=2132732082]
 layout_mode = 3
@@ -16,14 +20,15 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_battle")
 
-[node name="Background" type="ColorRect" parent="." unique_id=50699479]
+[node name="Background" type="TextureRect" parent="." unique_id=899123063]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.0627451, 0.0745098, 0.101961, 1)
+texture = ExtResource("2_ufi7x")
+expand_mode = 1
 
 [node name="LayoutRoot" type="VBoxContainer" parent="." unique_id=2067740999]
 layout_mode = 1
@@ -39,7 +44,6 @@ custom_minimum_size = Vector2(0, 132)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 0.45
 
 [node name="TopMargin" type="MarginContainer" parent="LayoutRoot/TopBand" unique_id=628002621]
 layout_mode = 2
@@ -55,7 +59,6 @@ size_flags_vertical = 3
 theme_override_constants/separation = 18
 
 [node name="SelfPanel" parent="LayoutRoot/TopBand/TopMargin/StatusRow" unique_id=1373572054 instance=ExtResource("2_player")]
-custom_minimum_size = Vector2(360, 112)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -65,23 +68,28 @@ show_dice = false
 [node name="TopHud" type="VBoxContainer" parent="LayoutRoot/TopBand/TopMargin/StatusRow" unique_id=1444414412]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 size_flags_vertical = 3
+size_flags_stretch_ratio = 0.5
 theme_override_constants/separation = 8
 
 [node name="NetworkStatus" type="Label" parent="LayoutRoot/TopBand/TopMargin/StatusRow/TopHud" unique_id=54228242]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 6
 theme_override_font_sizes/font_size = 14
 text = "状态"
 horizontal_alignment = 1
 autowrap_mode = 2
 
 [node name="BackButton" type="Button" parent="LayoutRoot/TopBand/TopMargin/StatusRow/TopHud" unique_id=1348539896]
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
+size_flags_vertical = 2
+size_flags_stretch_ratio = 1.5
 text = "返回模式选择 / 断开连接"
 
 [node name="EnemyPanel" parent="LayoutRoot/TopBand/TopMargin/StatusRow" unique_id=1619583191 instance=ExtResource("2_player")]
-custom_minimum_size = Vector2(360, 112)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -89,11 +97,10 @@ compact = true
 show_dice = false
 
 [node name="ArenaBand" type="PanelContainer" parent="LayoutRoot" unique_id=1978529658]
-custom_minimum_size = Vector2(0, 250)
+custom_minimum_size = Vector2(1850, 250)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 4
 size_flags_vertical = 3
-size_flags_stretch_ratio = 0.95
 
 [node name="ArenaBackground" type="TextureRect" parent="LayoutRoot/ArenaBand" unique_id=1023359930]
 layout_mode = 2
@@ -104,6 +111,7 @@ stretch_mode = 6
 
 [node name="ArenaMargin" type="MarginContainer" parent="LayoutRoot/ArenaBand" unique_id=73096285]
 layout_mode = 2
+theme = ExtResource("4_380v8")
 theme_override_constants/margin_left = 48
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 48
@@ -185,7 +193,6 @@ size_flags_vertical = 3
 [node name="SceneLabel" type="Label" parent="LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/StageCenter/StageCenterFill" unique_id=890606730]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
-text = "蓝焰竞技场"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -239,7 +246,6 @@ custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 1.55
 
 [node name="BottomMargin" type="MarginContainer" parent="LayoutRoot/BottomBand" unique_id=2062771313]
 layout_mode = 2
@@ -254,19 +260,32 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="DicePanel" type="PanelContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow" unique_id=1861660352]
+[node name="DicePanel" type="NinePatchRect" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow" unique_id=1129470415]
 custom_minimum_size = Vector2(330, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 0.68
+texture = ExtResource("7_pxpkm")
+region_rect = Rect2(11.75325, 10.856497, 336.45502, 300.2819)
+patch_margin_left = 21
+patch_margin_top = 18
+patch_margin_right = 19
+patch_margin_bottom = 20
 
-[node name="DiceMargin" type="MarginContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel" unique_id=1247115337]
-layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+[node name="DiceMargin" type="PanelContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel" unique_id=953168985]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.027
+anchor_top = 0.012
+anchor_right = 0.98100007
+anchor_bottom = 0.94900006
+offset_left = -0.0069999695
+offset_top = 0.016000032
+offset_right = 0.07897949
+offset_bottom = -0.06802368
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="DiceColumn" type="VBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin" unique_id=1584971235]
 layout_mode = 2
@@ -291,18 +310,30 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="ActionCell" type="PanelContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow" unique_id=1417419348]
+[node name="ActionCell" type="NinePatchRect" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow" unique_id=486062283]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 1.32
+texture = ExtResource("8_e8mee")
+region_rect = Rect2(20.400085, 15.600063, 860.00085, 318.4003)
+patch_margin_left = 28
+patch_margin_top = 33
+patch_margin_right = 29
+patch_margin_bottom = 30
 
-[node name="ActionMargin" type="MarginContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell" unique_id=932368544]
-layout_mode = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 10
+[node name="ActionMargin" type="MarginContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell" unique_id=2060170150]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.034
+anchor_top = 0.051000003
+anchor_right = 0.96900004
+anchor_bottom = 0.901
+offset_left = -0.09391022
+offset_top = 0.067998886
+offset_right = 25.406738
+offset_bottom = -0.13208008
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.97552985, 1)
 
 [node name="ActionColumn" type="VBoxContainer" parent="LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin" unique_id=1706158669]
 layout_mode = 2

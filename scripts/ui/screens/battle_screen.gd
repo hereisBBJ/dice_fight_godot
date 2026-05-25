@@ -23,9 +23,10 @@ const UIAssetsScript = preload("res://scripts/ui/components/ui_assets.gd")
 @onready var enemy_character_slot: PanelContainer = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot
 @onready var enemy_character_portrait: TextureRect = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot/EnemyCharacterMargin/EnemyCharacterColumn/Portrait
 @onready var enemy_character_name: Label = $LayoutRoot/ArenaBand/ArenaMargin/ArenaRow/EnemyStageColumn/EnemyCharacterHolder/EnemyCharacterSlot/EnemyCharacterMargin/EnemyCharacterColumn/Name
-@onready var dice_panel: PanelContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel
+@onready var dice_panel: NinePatchRect = $LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel
+@onready var dice_margin: PanelContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin
 @onready var dice_slot: VBoxContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/DicePanel/DiceMargin/DiceColumn/DiceSlot
-@onready var action_cell: PanelContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell
+@onready var action_cell: NinePatchRect = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell
 @onready var action_title: Label = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/ActionTitle
 @onready var action_scroll: ScrollContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/ActionScroll
 @onready var action_slot: HBoxContainer = $LayoutRoot/BottomBand/BottomMargin/BottomRow/ActionCell/ActionMargin/ActionColumn/ActionScroll/ActionSlot
@@ -83,14 +84,18 @@ func setup(new_battle, new_network_controller) -> void:
 
 
 func _apply_formal_styles() -> void:
-	top_band.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(Color(0.06, 0.07, 0.10, 0.98), UIAssetsScript.COLOR_GOLD_DARK, 0, 0))
+	#top_band.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(Color(0.06, 0.07, 0.10, 0.98), UIAssetsScript.COLOR_GOLD_DARK, 0, 0))
+	top_band.add_theme_stylebox_override("panel", _transparent_character_slot_style())
 	arena_band.add_theme_stylebox_override("panel", UIAssetsScript.arena_style())
-	bottom_band.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(Color(0.06, 0.07, 0.10, 0.98), UIAssetsScript.COLOR_GOLD_DARK, 0, 0))
+	#bottom_band.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(Color(0.06, 0.07, 0.10, 0.98), UIAssetsScript.COLOR_GOLD_DARK, 0, 0))
+	bottom_band.add_theme_stylebox_override("panel", _transparent_character_slot_style())
 	dice_panel.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(UIAssetsScript.COLOR_PANEL, UIAssetsScript.COLOR_GOLD, 6, 2))
+	dice_margin.add_theme_stylebox_override("panel", _transparent_character_slot_style())
 	action_cell.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(UIAssetsScript.COLOR_PANEL, UIAssetsScript.COLOR_GOLD, 6, 2))
 	self_character_slot.add_theme_stylebox_override("panel", _transparent_character_slot_style())
 	enemy_character_slot.add_theme_stylebox_override("panel", _transparent_character_slot_style())
-	UIAssetsScript.apply_label_color(status_label, UIAssetsScript.COLOR_TEXT_MUTED)
+	UIAssetsScript.apply_label_color(status_label, UIAssetsScript.COLOR_GOLD_DARK)
+	status_label.add_theme_font_size_override("font_size", 16)
 	UIAssetsScript.apply_label_color(round_label, UIAssetsScript.COLOR_GOLD)
 	UIAssetsScript.apply_label_color(scene_label, UIAssetsScript.COLOR_ARCANE)
 	UIAssetsScript.apply_label_color(action_title, UIAssetsScript.COLOR_GOLD)
