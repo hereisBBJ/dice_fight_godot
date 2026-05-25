@@ -17,12 +17,12 @@ const PRIVATE_TEXT = "敌方行动：已隐藏"
 
 @onready var portrait_frame: PanelContainer = $Margin/Column/Header/PortraitFrame
 @onready var portrait: TextureRect = $Margin/Column/Header/PortraitFrame/PortraitMargin/Portrait
-@onready var name_label: Label = $Margin/Column/Header/Info/Name
-@onready var role_label: Label = $Margin/Column/Header/Info/Role
-@onready var feedback_label: Label = $Margin/Column/Header/Info/Feedback
-@onready var hp_bar: ProgressBar = $Margin/Column/Stats/HpBar
-@onready var mp_bar: ProgressBar = $Margin/Column/Stats/MpBar
-@onready var shield_bar: ProgressBar = $Margin/Column/Stats/ShieldBar
+@onready var name_label: Label = $Margin/Column/Header/Info_Stats/Info/Name
+@onready var role_label: Label = $Margin/Column/Header/Info_Stats/Info/Role
+@onready var feedback_label: Label = $Margin/Column/Header/Info_Stats/Info/Feedback
+@onready var hp_bar: ProgressBar = $Margin/Column/Header/Info_Stats/Stats/HpBar
+@onready var mp_bar: ProgressBar = $Margin/Column/Header/Info_Stats/Stats/MpBar
+@onready var shield_bar: ProgressBar = $Margin/Column/Header/Info_Stats/Stats/ShieldBar
 @onready var dice_slot: Control = $Margin/Column/DiceSlot
 @onready var status_row: HFlowContainer = $Margin/Column/StatusRow
 @onready var passive_label: Label = $Margin/Column/TextBlock/Passive
@@ -31,7 +31,7 @@ const PRIVATE_TEXT = "敌方行动：已隐藏"
 @onready var margin: MarginContainer = $Margin
 @onready var column: VBoxContainer = $Margin/Column
 @onready var header: HBoxContainer = $Margin/Column/Header
-@onready var stats: VBoxContainer = $Margin/Column/Stats
+@onready var stats: VBoxContainer = $Margin/Column/Header/Info_Stats/Stats
 @onready var text_block: VBoxContainer = $Margin/Column/TextBlock
 
 var _dice_view: DiceView
