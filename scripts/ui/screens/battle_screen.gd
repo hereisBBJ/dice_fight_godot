@@ -88,12 +88,24 @@ func _apply_formal_styles() -> void:
 	bottom_band.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(Color(0.06, 0.07, 0.10, 0.98), UIAssetsScript.COLOR_GOLD_DARK, 0, 0))
 	dice_panel.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(UIAssetsScript.COLOR_PANEL, UIAssetsScript.COLOR_GOLD, 6, 2))
 	action_cell.add_theme_stylebox_override("panel", UIAssetsScript.formal_panel_style(UIAssetsScript.COLOR_PANEL, UIAssetsScript.COLOR_GOLD, 6, 2))
-	self_character_slot.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.08, 0.11, 0.16, 0.94), UIAssetsScript.COLOR_ARCANE))
-	enemy_character_slot.add_theme_stylebox_override("panel", UIAssetsScript.inset_panel_style(Color(0.08, 0.11, 0.16, 0.94), UIAssetsScript.COLOR_ARCANE))
+	self_character_slot.add_theme_stylebox_override("panel", _transparent_character_slot_style())
+	enemy_character_slot.add_theme_stylebox_override("panel", _transparent_character_slot_style())
 	UIAssetsScript.apply_label_color(status_label, UIAssetsScript.COLOR_TEXT_MUTED)
 	UIAssetsScript.apply_label_color(round_label, UIAssetsScript.COLOR_GOLD)
 	UIAssetsScript.apply_label_color(scene_label, UIAssetsScript.COLOR_ARCANE)
 	UIAssetsScript.apply_label_color(action_title, UIAssetsScript.COLOR_GOLD)
+
+
+func _transparent_character_slot_style() -> StyleBoxFlat:
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0, 0, 0, 0)
+	style.border_color = Color(0, 0, 0, 0)
+	style.set_border_width_all(0)
+	style.content_margin_left = 0
+	style.content_margin_right = 0
+	style.content_margin_top = 0
+	style.content_margin_bottom = 0
+	return style
 
 
 func _self_player_id() -> int:
@@ -168,7 +180,7 @@ func _render_stage_character(slot: PanelContainer, portrait: TextureRect, label:
 	var player: Dictionary = battle.players[player_id]
 	var character: Dictionary = player.get("character", {})
 	var theme_color = UIAssetsScript.color_from_hex(String(character.get("theme_color", "")), Color(0.18, 0.19, 0.22))
-	slot.add_theme_stylebox_override("panel", UIAssetsScript.panel_style(Color(0.02, 0.02, 0.025), theme_color.darkened(0.2), 2))
+	slot.add_theme_stylebox_override("panel", _transparent_character_slot_style())
 	portrait.flip_h = flip_h
 	if portrait.has_method("set_character_animation"):
 		portrait.set_character_animation(character, theme_color, Vector2i(192, 192), "battle_idle")
