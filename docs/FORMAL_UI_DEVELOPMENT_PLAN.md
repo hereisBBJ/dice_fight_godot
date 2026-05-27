@@ -590,6 +590,7 @@ scripts/ui/components/skill_card.gd
 - 背景为 1920x1080 暗黑奇幻像素地下城竞技场，中央魔法阵，左右角色站位留空；未在图中生成 UI 文本、按钮、角色、血条、骰子或技能卡。
 - `battle_screen.tscn` 已将背景作为 `ArenaBand` 内的 `TextureRect` 接入，角色站位、回合标题、技能/骰子/日志结构保持原样。
 - 2026-05-25 隐藏竞技场左右角色槽的面板底和描边，让角色直接站在竞技场背景上；布局、角色名、动画 fallback 和 command 流程保持不变。
+- 2026-05-27 下调 Archer 当前动画速度：`battle_idle` 6 FPS -> 4 FPS，`attack`/`backstep` 10 FPS -> 7 FPS；同步更新 manifest 与 SpriteFrames 兜底资源，未修改规则或网络代码。
 - 本轮只改表现层资源与场景结构，未修改规则代码或网络代码；角色动画、浮字和更完整的 presentation event 消费仍待后续完成。
 
 ## 工作流 10：主菜单、角色选择、强化选择、结算界面

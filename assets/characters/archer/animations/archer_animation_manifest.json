@@ -12,19 +12,19 @@
   "animations": {
     "battle_idle": {
       "frames": 6,
-      "fps": 6.0,
+      "fps": 4.0,
       "loop": true,
       "row": 0
     },
     "attack": {
       "frames": 6,
-      "fps": 10.0,
+      "fps": 7.0,
       "loop": false,
       "row": 1
     },
     "backstep": {
       "frames": 6,
-      "fps": 10.0,
+      "fps": 7.0,
       "loop": false,
       "row": 2
     }
